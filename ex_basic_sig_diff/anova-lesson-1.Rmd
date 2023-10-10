@@ -149,7 +149,7 @@ plot_resids_anova<-function(formula, data){
     geom_hline(yintercept=0)+
     geom_boxplot(aes(fill=x),alpha=.3, color=NA)+
     # geom_stripchart()
-    geom_point(position=position_jitter(width=.1), alpha=.6)+theme_bw()+labs(y="residuals",x="fitted values", title="Residual Versus Fitted Plot",
+    geom_point(position=position_jitter(width=.1), alpha=.6)+theme_bw()+labs(y="residuals",x="fitted values", title=paste("Residual Versus Fitted Plot,",DV,"~",IV),
                                                                               subtitle="(Boxes represent interquartile ranges)")+ scale_y_continuous(limits=c(m-.1,M+.12))+
     theme(legend.position = "none")+
     annotate("text",x=levs, y=rep(M+.1,3),
