@@ -1,0 +1,57 @@
+---
+title: "Brainstorm for ANOVA lessons"
+author: "by P. Lombardo"
+output:
+  html_document: default
+---
+
+# Lessons list:
+Each lesson will have the rough outline below.  Here is what I plan to develop
+
+* A lesson with a straightforward ANOVA (no assumption violations) and significant result.
+* A lesson with a straightforward ANOVA (no assumption violations) and non-significant result.
+* A lesson with a problematic ANOVA, heteroscedastic data. Attempt to fix by using Welch's ANOVA.
+* A lesson with a problematic ANOVA, non-normal residuals. Attempt to fix by logging the outcome.
+
+# Proposed outline
+
+### Page 1
+
+* Present the research question, and allow students to explore the data and set the independent/dependent variables for the analysis (*if you use other language here, let me know*).
+* Code to check the number of levels in grouping variable, verifying that we need ANOVA.
+
+
+### Page 2
+
+* *Quickly review or test the assumptions of an ANOVA.*  If you decide you want them to "test", I'd have a series of questions here about the assumptions of an ANOVA and they'd answer them. They can keep trying until they get it right, and wrong answers would have messages to push them in the right direction.
+* Check sample sizes to establish how "balanced" the design is.
+* Fit an initial model to use in the subsequent sections; we may decide to update this model.  (Assume we save it under `aov.model`.)
+
+### Page 3
+Explore and test for homoscedasticity
+
+* Report: create an output table of standard deviations by group, `tapply(dependent_var, independent_var, sd)`
+* Visualize: `plot(aov.model, which =1)`.  Look visually at the spread of residuals for each group.  ***Is this what you do?***
+* Levene's test: run and interpret levene's test. 
+
+### Page 4
+Explore and test for normality of residuals.
+
+* Visualize: `plot(aov.model, which =2)` and `hist(aov.model$residuals)`.  Look visually at the shape of the residuals, as well as the QQ-plot.
+* Kolmogorov-Smirnov test: run and interpret this test. ***Is this what you use?***. (I don't usually teach a hypothesis test for this, but I recall that you do?)
+
+### Page 5
+Review results, make a plan moving forward to either:
+
+1. Use and interpret the results of the initial aov model, or
+2. Fit a new model (like a log-output, or something) and move forward.
+
+### Page 6
+Execute plan and interpret results.
+
+* If we fit a new model, I'd just present the updated "checks" in table form and have a question as to whether this improved things.
+* Cover how to get the $P$-value, and what it means.
+* ***Do you want a TukeyHSD follow up?*** If so, do you just want a discussion of adjusted $P$-values, or should I talk about the confidence intervals as well (to help us tell which mean is bigger)?
+
+
+
