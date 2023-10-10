@@ -9,9 +9,11 @@ runtime: shiny_prerendered
 
 ```{r setup, include=FALSE}
 library(learnr)
+library(car)
 # library(dplyr)
-# library(ggplot2)
+library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
+
 ```
 
 ## Our research question {data-progressive=TRUE}
@@ -95,12 +97,128 @@ tapply(iris$Petal.Width, iris$Species, mean)
 boxplot(Petal.Width~Species, data = iris)
 ```
 
+```{r why-anova-question}
+question("Which of the following statements explain why we need to use ANOVA rather than a different statistical test? <br> *Select all that apply.*",
+    answer("We are interested in comparing the means for a quantitative measurement across several groups.", correct=TRUE),
+    answer("The independent variable is a grouping variable with at least *three* groups (sometimes called \"levels\").", correct = TRUE),
+    answer("The variance of the groups are all about the same.", message = "While the details of ANOVA involve variance, it does test for differences in means."),
+    answer("Our box-plots do not seem to overlap much, and the group means are seemingly different.", message = "We still use ANOVA to do our statistical testing regardless of what the summarized data reports."),
+    answer("We should not use an ANOVA for this analysis.", message = "ANOVA is in fact the right analysis approach for this research question and data."),
+    allow_retry = T,
+    random_answer_order = T,
+    post_message = random_praise()
+  )
+```
+
 ## Preparing for ANOVA
+
+Check for "balance"
+```{r}
+table(iris$Species)
+```
+
+Assumptions of ANOVA:
+
+* Normality of residuals (or normality within groups)
+* equal variances/sd within groups
+
+Initial fit
+```{r}
+iris.aov<-aov(Petal.Width ~ Species, data = iris)
+```
+
 
 ## Checking assumptions, part 1
 
+Checking residuals versus fitted for groups
+
+```{r}
+plot_resids_anova<-function(IV, DV, data){
+    sds<-tapply(data[[DV]],data[[IV]],sd)
+    levs<-levels(data[[IV]])
+    aov.model<-aov(formula(paste(DV,IV,sep="~")), data = data)
+    M<-max(aov.model$residuals)
+    m<-min(aov.model$residuals)
+    ggplot(data = data.frame(x=data[[IV]],
+                         y=aov.model$residuals),
+       aes(x=x,
+           y=y,
+           color=x))+
+    geom_hline(yintercept=0)+
+    geom_boxplot(aes(fill=x),alpha=.3, color=NA)+
+    # geom_stripchart()
+    geom_point(position=position_jitter(width=.05), alpha=.6)+theme_bw()+labs(y="residuals",x="fitted values", title="Residual Versus Fitted Plot")+ scale_y_continuous(limits=c(m-.1,M+.12))+
+    theme(legend.position = "none")+
+    annotate("text",x=levs, y=rep(M+.1,3),
+             label=paste("stdev =",round(sds,3)))
+}
+
+plot_resids_anova("Species","Petal.Length",iris)
+
+
+sds<-with(iris,
+    tapply(Petal.Width, Species, sd)
+)
+ggplot(data = data.frame(x=iris$Species,
+                         y=iris.aov$residuals),
+       aes(x=x,
+           y=y,
+           color=x))+
+    geom_hline(yintercept=0)+
+    geom_boxplot(aes(fill=x),alpha=.3, color=NA)+
+    # geom_stripchart()
+    geom_point(position=position_jitter(width=.05), alpha=.6)+theme_bw()+labs(y="residuals",x="fitted values", title="Residual Versus Fitted Plot")+ scale_y_continuous(limits=c(-.7,.7))+
+    scale_x_discrete(labels=paste(levels(iris$Species),"\n(stdev =",round(sds,3),")",sep=""))+
+    theme(legend.position = "none")+
+    annotate("text",x=c("setosa","versicolor","virginica"), y=rep(.65,3),
+             label=paste("stdev =",round(sds,3)))
+```
+
+```{r}
+with(iris,
+    tapply(Petal.Width, Species, sd)
+)
+```
+
+
+```{r}
+leveneTest(Petal.Width~Species,
+           center="mean", data = iris)
+```
+
+P-value < 0.05, indicating we have evidence the variances are *not* equal.  
+
+* Balanced design with each group n greater than 30, we can probably relax this assumption.
+
 ## Checking assumptions, part 2
+normality
+```{r}
+hist(iris.aov$residuals)
+```
+
+```{r}
+library(ggplot2)
+plot(iris.aov, which =2)
+```
+
+```{r}
+ks.test(iris.aov$residuals,"pnorm")
+shapiro.test(iris.aov$residuals)
+```
+
+```{r}
+with(iris,
+     tapply(Petal.Width, Species, hist))
+
+library(ggplot2)
+ggplot(data = iris,
+       aes(x = Petal.Width))+
+    geom_histogram(bins =20)+
+    facet_grid(Species~., scales="free")
+```
+
 
 ## Planning for final analysis
+For iris, we would do a Welch's ANOVA
 
 ## Final analysis and interpretation
