@@ -1,92 +1,106 @@
 ---
-title: "Template `learnr` tutorial"
-output: learnr::tutorial
+title: "ANOVA Lesson 1"
+author: (Created by P. Lombardo)
+output: 
+    learnr::tutorial:
+        theme: "united"
 runtime: shiny_prerendered
 ---
 
 ```{r setup, include=FALSE}
 library(learnr)
-library(dplyr)
-library(ggplot2)
+# library(dplyr)
+# library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
+## Our research question {data-progressive=TRUE}
+Today want to consider the following question:
 
-## Topic 1
+> Does the species of an iris plant have an association with the mean width of its petals?
 
-### Exercise 
+<center><figure><img src="images/iris.png" width=70%></img>
+<figcaption>Fig.1 - Labeled Irises by Species <a href="https://www.datacamp.com/tutorial/machine-learning-in-r">(source)</a></figcaption></figure></center>
 
-*Here's a simple exercise with an empty code chunk provided for entering the answer.*
-
-Write the R code required to add two plus two:
-
-```{r two-plus-two, exercise=TRUE}
-
+### Explore the data!
+Run the code below to explore the data frame.  Remember you can use the small, black triangle in the upper right to view more variables (columns), and you can hit the "Next" button to view more observations (rows).
+```{r explore, exercise = TRUE, exercise.lines = 2}
+iris
 ```
 
-### Exercise with Code
+Please review the following definitions before completing the follow-up questions:
 
-*Here's an exercise with some prepopulated code as well as `exercise.lines = 5` to provide a bit more initial room to work.*
+* **Independent variable:** this is typically a variable that researchers have some control over, and they let it vary to test for some sort of response in the *dependent variable.*
 
-Now write a function that adds any two numbers and then call it:
+* **Dependent variable:** this is typically a variable that researchers use to measure the response to differences in an *independent variable*. The researchers cannot (and should not) control what the dependent variable is doing!
 
-```{r add-function, exercise=TRUE, exercise.lines = 5}
-add <- function() {
-  
-}
-```
-
-## Topic 2
-
-### Exercise with Hint
-
-*Here's an exercise where the chunk is pre-evaluated via the `exercise.eval` option (so the user can see the default output we'd like them to customize). We also add a "hint" to the correct solution via the chunk immediate below labeled `print-limit-hint`.*
-
-Modify the following code to limit the number of rows printed to 5:
-
-```{r print-limit, exercise=TRUE, exercise.eval=TRUE}
-mtcars
-```
-
-```{r print-limit-hint}
-head(mtcars)
-```
-
-
-### Shiny Example
-```{r, echo=FALSE}
-sliderInput("bins", "Number of bins:", min = 1, max = 50, value = 30)
-plotOutput("distPlot")
-```
-
-```{r, context="server"}
-output$distPlot <- renderPlot({
-  x <- faithful[, 2]  # Old Faithful Geyser data
-  bins <- seq(min(x), max(x), length.out = input$bins + 1)
-  hist(x, breaks = bins, col = 'darkgray', border = 'white')
-})
-```
-
-### Quiz
-
-*You can include any number of single or multiple choice questions as a quiz. Use the `question` function to define a question and the `quiz` function for grouping multiple questions together.*
-
-Some questions to verify that you understand the purposes of various base and recommended R packages:
-
-```{r quiz}
+```{r variable-question}
 quiz(
-  question("Which package contains functions for installing other R packages?",
-    answer("base"),
-    answer("tools"),
-    answer("utils", correct = TRUE),
-    answer("codetools")
+    question("Based on the definition above, which variable in the data frame is the *independent variable*? ",
+    answer("Petal.Width", message="This is an important variable, but the scientists are not choosing flowers to get specific petal widths. They are not exercising any control over this variable."),
+    answer("Sepal.Length", message="This variable is not related to our research question. (We did use it as an example though.)"),
+    answer("Species", correct = TRUE),
+    answer("Petal.Length", message="This variable is not related to our research question."),
+    answer("Sepal.Width",message="This variable is not related to our research question."),
+    answer("Sample_ID", message="This is not a variable in our data frame."),
+    allow_retry = T,
+    random_answer_order = T,
+    incorrect = paste(random_encouragement(),"Remember we are looking for differences in the petal widths between setosa, virginica, and versicolor irises. The scientists specifically collected samples from each species of iris, exercising some control over that aspect of the study."),
+    post_message = random_praise()
   ),
-  question("Which of the R packages listed below are used to create plots?",
-    answer("lattice", correct = TRUE),
-    answer("tools"),
-    answer("stats"),
-    answer("grid", correct = TRUE)
-  )
+
+    question("Based on the definitions above, which variable in the data frame is the *dependent variable*?",
+        answer("Petal.Width", correct=TRUE),
+        answer("Sepal.Length", message="This variable is not related to our research question. (We did use it as an example though.)"),
+        answer("Species", message="We do not typically think of the species of a flower as *responding* to the variation in some other variable."),
+        answer("Petal.Length", message="This variable is not related to our research question."),
+        answer("Sepal.Width",message="This variable is not related to our research question."),
+        answer("Sample_ID", message="This is not a variable in our data frame."),
+        allow_retry = T,
+        random_answer_order = T,
+        incorrect = paste(random_encouragement(),"Remember we are looking for differences in the petal widths between setosa, virginica, and versicolor irises. The researchers collected different species already; what *measurement* are they taking to compare these samples?"),
+        post_message = random_praise()
+      )
 )
 ```
 
+
+### Summarizing the data
+Before doing inferential statistics, let's summarize the pertinent data by comparing means across species, and by creating a comparative boxplot.
+
+#### Exercise!
+The code below generates this explorative information, *but for sepal length*. ***Make the appropriate changes to the code to work for `Petal.Width` instead.***
+```{r explore2, exercise = TRUE, exercise.lines = 5}
+# Sepal length means by species
+tapply(iris$Sepal.Length, iris$Species, mean)
+# boxplot
+boxplot(Sepal.Length~Species, data = iris)
+```
+```{r explore2-hint-1}
+# Petal Width means by species
+tapply(iris$..., iris$Species, mean)
+# boxplot
+boxplot(...~Species, data = iris)
+```
+```{r explore2-hint-2}
+# Petal Width means by species
+tapply(iris$Petal.Width, iris$Species, mean)
+# boxplot
+boxplot(...~Species, data = iris)
+```
+```{r explore2-solution}
+# Petal Width means by species
+tapply(iris$Petal.Width, iris$Species, mean)
+# boxplot
+boxplot(Petal.Width~Species, data = iris)
+```
+
+## Preparing for ANOVA
+
+## Checking assumptions, part 1
+
+## Checking assumptions, part 2
+
+## Planning for final analysis
+
+## Final analysis and interpretation
