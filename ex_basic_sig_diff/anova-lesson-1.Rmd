@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = FALSE)
 ## Our research question {data-progressive=TRUE}
 Today want to consider the following question:
 
-> Does the species of an iris plant have an association with the mean width of its petals?
+> Does the ***species*** of an iris plant have an association with the mean width of its ***sepals***?
 
 <center><figure><img src="images/iris.png" width=70%></img>
 <figcaption>Fig.1 - Labeled Irises by Species <a href="https://www.datacamp.com/tutorial/machine-learning-in-r">(source)</a></figcaption></figure></center>
@@ -39,28 +39,28 @@ Please review the following definitions before completing the follow-up question
 ```{r variable-question}
 quiz(
     question("Based on the definition above, which variable in the data frame is the *independent variable*? ",
-    answer("Petal.Width", message="This is an important variable, but the scientists are not choosing flowers to get specific petal widths. They are not exercising any control over this variable."),
+    answer("Sepal.Width", message="This is an important variable, but the scientists are not choosing flowers to get specific sepal widths. They are not exercising any control over this variable."),
     answer("Sepal.Length", message="This variable is not related to our research question. (We did use it as an example though.)"),
     answer("Species", correct = TRUE),
     answer("Petal.Length", message="This variable is not related to our research question."),
-    answer("Sepal.Width",message="This variable is not related to our research question."),
+    answer("Petal.Width",message="This variable is not related to our research question."),
     answer("Sample_ID", message="This is not a variable in our data frame."),
     allow_retry = T,
     random_answer_order = T,
-    incorrect = paste(random_encouragement(),"Remember we are looking for differences in the petal widths between setosa, virginica, and versicolor irises. The scientists specifically collected samples from each species of iris, exercising some control over that aspect of the study."),
+    incorrect = paste(random_encouragement(),"Remember we are looking for differences in the *sepal* widths between setosa, virginica, and versicolor irises. The scientists specifically collected samples from each species of iris, exercising some control over that aspect of the study."),
     post_message = random_praise()
   ),
 
     question("Based on the definitions above, which variable in the data frame is the *dependent variable*?",
-        answer("Petal.Width", correct=TRUE),
+        answer("Sepal.Width", correct=TRUE),
         answer("Sepal.Length", message="This variable is not related to our research question. (We did use it as an example though.)"),
         answer("Species", message="We do not typically think of the species of a flower as *responding* to the variation in some other variable."),
         answer("Petal.Length", message="This variable is not related to our research question."),
-        answer("Sepal.Width",message="This variable is not related to our research question."),
+        answer("Petal.Width",message="This variable is not related to our research question."),
         answer("Sample_ID", message="This is not a variable in our data frame."),
         allow_retry = T,
         random_answer_order = T,
-        incorrect = paste(random_encouragement(),"Remember we are looking for differences in the petal widths between setosa, virginica, and versicolor irises. The researchers collected different species already; what *measurement* are they taking to compare these samples?"),
+        incorrect = paste(random_encouragement(),"Remember we are looking for differences in the *sepal* widths between setosa, virginica, and versicolor irises. The researchers collected different species already; what *measurement* will they use to compare these samples?"),
         post_message = random_praise()
       )
 )
@@ -68,15 +68,15 @@ quiz(
 
 
 ### Summarizing the data
-Before doing inferential statistics, let's summarize the pertinent data by comparing means across species, and by creating a comparative boxplot.
+Before doing inferential statistics, let's summarize the pertinent data by comparing means across species, and by creating a comparative box-plot.
 
 #### Exercise!
-The code below generates this explorative information, *but for sepal length*. ***Make the appropriate changes to the code to work for `Petal.Width` instead.***
+The code below generates this explorative information, *but for petal length*. ***Make the appropriate changes to the code to work for `Sepal.Width` instead.***
 ```{r explore2, exercise = TRUE, exercise.lines = 5}
 # Sepal length means by species
-tapply(iris$Sepal.Length, iris$Species, mean)
+tapply(iris$Petal.Length, iris$Species, mean)
 # boxplot
-boxplot(Sepal.Length~Species, data = iris)
+boxplot(Petal.Length~Species, data = iris)
 ```
 ```{r explore2-hint-1}
 # Petal Width means by species
@@ -86,19 +86,19 @@ boxplot(...~Species, data = iris)
 ```
 ```{r explore2-hint-2}
 # Petal Width means by species
-tapply(iris$Petal.Width, iris$Species, mean)
+tapply(iris$Sepal.Width, iris$Species, mean)
 # boxplot
 boxplot(...~Species, data = iris)
 ```
 ```{r explore2-solution}
 # Petal Width means by species
-tapply(iris$Petal.Width, iris$Species, mean)
+tapply(iris$Sepal.Width, iris$Species, mean)
 # boxplot
-boxplot(Petal.Width~Species, data = iris)
+boxplot(Sepal.Width~Species, data = iris)
 ```
 
 ```{r why-anova-question}
-question("Which of the following statements explain why we need to use ANOVA rather than a different statistical test? <br> *Select all that apply.*",
+question("Which of the following statements explain(s) why we need to use ANOVA rather than a different statistical test? <br> *Select all that apply.*",
     answer("We are interested in comparing the means for a quantitative measurement across several groups.", correct=TRUE),
     answer("The independent variable is a grouping variable with at least *three* groups (sometimes called \"levels\").", correct = TRUE),
     answer("The variance of the groups are all about the same.", message = "While the details of ANOVA involve variance, it does test for differences in means."),
@@ -124,7 +124,7 @@ Assumptions of ANOVA:
 
 Initial fit
 ```{r}
-iris.aov<-aov(Petal.Width ~ Species, data = iris)
+iris.aov<-aov(Sepal.Width ~ Species, data = iris)
 ```
 
 
@@ -167,19 +167,18 @@ plot_resids_anova(Petal.Width~Species,iris)
 
 ```{r}
 with(iris,
-    tapply(Petal.Width, Species, sd)
+    tapply(Sepal.Width, Species, sd)
 )
 ```
 
 
 ```{r}
-leveneTest(Petal.Width~Species,
+leveneTest(Sepal.Width~Species,
            center="mean", data = iris)
 ```
 
-P-value < 0.05, indicating we have evidence the variances are *not* equal.  
+P-value < 0.05, indicating we have do not have evidence the variances are  unequal.  
 
-* Balanced design with each group n greater than 30, we can probably relax this assumption.
 
 ## Checking assumptions, part 2
 normality
@@ -189,27 +188,38 @@ hist(iris.aov$residuals)
 
 ```{r}
 library(ggplot2)
+iris.aov<-aov(Sepal.Width~Species, data =iris)
 plot(iris.aov, which =2)
 ```
 
 ```{r}
-ks.test(iris.aov$residuals,"pnorm")
 shapiro.test(iris.aov$residuals)
 ```
 
 ```{r}
 with(iris,
-     tapply(Petal.Width, Species, hist))
+     tapply(Sepal.Width, Species, hist))
 
 library(ggplot2)
 ggplot(data = iris,
-       aes(x = Petal.Width))+
-    geom_histogram(bins =20)+
+       aes(x = Sepal.Width))+
+    geom_histogram(bins =5)+
     facet_grid(Species~., scales="free")
 ```
 
 
 ## Planning for final analysis
-For iris, we would do a Welch's ANOVA
+No seeming issues with homoscedasticity or normality of residuals; the design is perfectly balanced, and we have good sample sizes.  A standard ANOVA should do the trick!
 
 ## Final analysis and interpretation
+```{r}
+summary(iris.aov)
+```
+Evidence suggests at least one population mean is different from the others
+
+```{r}
+TukeyHSD(iris.aov)
+```
+
+All three appear different from each other
+
