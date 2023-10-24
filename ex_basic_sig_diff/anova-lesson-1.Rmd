@@ -14,6 +14,28 @@ library(car)
 library(ggplot2)
 knitr::opts_chunk$set(echo = FALSE)
 
+plot_resids_anova<-function(formula, data,dec=3){
+    IV<-all.vars(formula)[2]
+    DV<-all.vars(formula)[1]
+    sds<-tapply(data[[DV]],data[[IV]],sd)
+    levs<-levels(data[[IV]])
+    aov.model<-aov(formula(paste(DV,IV,sep="~")), data = data)
+    M<-max(aov.model$residuals)
+    m<-min(aov.model$residuals)
+    ggplot(data = data.frame(x=data[[IV]],
+                         y=aov.model$residuals),
+       aes(x=x,
+           y=y,
+           color=x))+
+    geom_hline(yintercept=0)+
+    geom_boxplot(aes(fill=x),alpha=.3, color=NA)+
+    # geom_stripchart()
+    geom_point(position=position_jitter(width=.1), alpha=.6)+theme_bw()+labs(y="residuals",x="fitted values", title=paste("Residual Versus Fitted Plot,",DV,"~",IV),                                                                    subtitle="(Boxes represent interquartile ranges)")+ scale_y_continuous(limits=c(m-.1,M+.12))+
+
+        scale_color_discrete(IV,labels=paste(levs,"\n(stdev = ",round(sds,dec),")\n",sep=""))+
+        scale_fill_discrete(guide="none")
+}
+
 ```
 
 ## Our research question {data-progressive=TRUE}
@@ -25,16 +47,27 @@ Today want to consider the following question:
 <figcaption>Fig.1 - Labeled Irises by Species <a href="https://www.datacamp.com/tutorial/machine-learning-in-r">(source)</a></figcaption></figure></center>
 
 ### Explore the data!
+
+#### Exercise!
 Run the code below to explore the data frame.  Remember you can use the small, black triangle in the upper right to view more variables (columns), and you can hit the "Next" button to view more observations (rows).
 ```{r explore, exercise = TRUE, exercise.lines = 2}
 iris
 ```
 
-Please review the following definitions before completing the follow-up questions:
+***
 
-* **Independent variable:** this is typically a variable that researchers have some control over, and they let it vary to test for some sort of response in the *dependent variable.*
+#### Reviewing some important definitions
+In statistics, it is critical to distinguish between the following types of variables:
 
-* **Dependent variable:** this is typically a variable that researchers use to measure the response to differences in an *independent variable*. The researchers cannot (and should not) control what the dependent variable is doing!
+* ***Independent variable:***  this is typically a variable that researchers have some control over, and they let it vary to test for some sort of response in the *dependent variable.*
+
+* ***Dependent variable:***  this is typically a variable that researchers use to measure the response to differences in an *independent variable*. The researchers cannot (and should not) control what the dependent variable is doing!
+
+Identifying our independent and dependent variables is a critical step in determining how to proceed with appropriate analyses and visualizations.  With that in mind, let's revisit our research question:
+
+> Does the ***species*** of an iris plant have an association with the mean width of its ***sepals***?
+
+With this in mind, please answer the questions below!
 
 ```{r variable-question}
 quiz(
@@ -66,9 +99,31 @@ quiz(
 )
 ```
 
+### Need something on checking levels
+`levels(iris$Species)`
 
-### Summarizing the data
-Before doing inferential statistics, let's summarize the pertinent data by comparing means across species, and by creating a comparative box-plot.
+```{r why-anova-question}
+question("Which of the following statements explain(s) why we need to use ANOVA rather than a different statistical test? <br> *Select all that apply.*",
+    answer("We are interested in comparing the means for a quantitative measurement across several groups.", correct=TRUE),
+    answer("The independent variable is a grouping variable with at least *three* groups (sometimes called \"levels\").", correct = TRUE),
+    answer("The variance of the groups are all about the same.", message = "While the details of ANOVA involve variance, it does test for differences in means."),
+    answer("Our box-plots do not seem to overlap much, and the group means are seemingly different.", message = "We still use ANOVA to do our statistical testing regardless of what the summarized data reports."),
+    answer("We should not use an ANOVA for this analysis.", message = "ANOVA is in fact the right analysis approach for this research question and data."),
+    allow_retry = T,
+    random_answer_order = T,
+    post_message = random_praise()
+  )
+```
+
+## Summarizing the data
+We have identified `Species` as our independent variable, with a `Sepal.Width` dependent variable.  So how can we look for an association between these variables?
+
+A common approach is to use a statistical test to determine whether the data provides evidence to suggest that there are differences in the *population mean*  `Sepal.Width`s when we look at our three `Species`.  This, loosely speaking, is what we hope to accomplish when we run an ANOVA. 
+
+However, before doing inferential statistics, we can create descriptive statistics associated with our sample data that help inform our research question. Particularly, we can 
+
+1. Look at the *sample means* for sepal width across the three species, and
+2. Use a visual, like a box-plot, to further explore whether there appear to be differences in sepal widths between the three species. 
 
 #### Exercise!
 The code below generates this explorative information, *but for petal length*. ***Make the appropriate changes to the code to work for `Sepal.Width` instead.***
@@ -97,18 +152,36 @@ tapply(iris$Sepal.Width, iris$Species, mean)
 boxplot(Sepal.Width~Species, data = iris)
 ```
 
-```{r why-anova-question}
-question("Which of the following statements explain(s) why we need to use ANOVA rather than a different statistical test? <br> *Select all that apply.*",
-    answer("We are interested in comparing the means for a quantitative measurement across several groups.", correct=TRUE),
-    answer("The independent variable is a grouping variable with at least *three* groups (sometimes called \"levels\").", correct = TRUE),
-    answer("The variance of the groups are all about the same.", message = "While the details of ANOVA involve variance, it does test for differences in means."),
-    answer("Our box-plots do not seem to overlap much, and the group means are seemingly different.", message = "We still use ANOVA to do our statistical testing regardless of what the summarized data reports."),
-    answer("We should not use an ANOVA for this analysis.", message = "ANOVA is in fact the right analysis approach for this research question and data."),
+```{r smallest-mean-question}
+question(
+    "Based on the previous exercise, which species of iris has the smallest sample mean sepal width?",
+    answer("setosa", message="The mean sepal length for setosa should be about 3.5 inches, which is not the smallest.  Are you sure you selected the correct dependent variable, `Sepal.Length`?"),
+    answer("versicolor", correct=TRUE),
+    answer("virginica", message="The mean sepal length for viginica should be about 3 inches, which is not the smallest.  Are you sure you selected the correct dependent variable, `Sepal.Length`?"),
+    answer("siberian",message="While this is a species of iris, it is not in our data set so it should not be appearing in your sample statistics."),
     allow_retry = T,
     random_answer_order = T,
     post_message = random_praise()
-  )
+)
+
 ```
+
+#### Exercise!
+
+```{r predict-question}
+question_text(
+  "Based on the sample means and the box-plot alone, do you believe there is a difference in *population mean* sepal lengths among the three species of irises? Use the box-plot and means to support your answer. If you believe there is a difference, discuss which species will be different from one another?<br></br> Submit your answer to see an example written by us! <br></br> (***Note***: all responses are marked 'correct,' so please compare your answer against ours.",
+  answer_fn(function(value) {
+    if (grepl(".*", value)) {
+      correct("Great work writing your prediction! How does yours compare with ours?")
+    }
+  }), message="The box-plots in our visual all seem reasonably different, with setosa seeming the most different from the other two. Admittedly, there is less of a difference when comparing versicolor and virginica. The differences illustrated by the box-plot are reinforced by the sample means, where setosa has a larger sample mean of about 3.4, whereas versicolor (about 2.8) and virginica (about 3.0) are smaller and more similar to one another. <br></br> So does this mean we will find evidence for a difference in means *at the population level*? Is this a trend we would observe if we collected new samples, or is it just a fluke unique to the sample we happened to collect this time?<br></br> Well, that's not so easy to determine based on these simple summaries, ***which is the whole point of ANOVA*** in the first place! Observing differences in our sample data does not imply we will see the same differences in the populations.  We need *inferential statistics* to do that work responsibly."
+)
+```
+
+
+Acknowledging ANOVA: Even though the sample means may be different, this does not necessarily we have enough evidence that the *population means* are different.
+
 
 ## Preparing for ANOVA
 
