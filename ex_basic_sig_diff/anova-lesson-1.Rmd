@@ -3,7 +3,7 @@ title: "ANOVA Lesson 1"
 author: (Created by P. Lombardo)
 output: 
     learnr::tutorial:
-        theme: "united"
+        theme: "yeti"
 runtime: shiny_prerendered
 ---
 
@@ -72,7 +72,7 @@ With this in mind, please answer the questions below!
 ```{r variable-question}
 quiz(
     question("Based on the definition above, which variable in the data frame is the *independent variable*? ",
-    answer("Sepal.Width", message="This is an important variable, but the scientists are not choosing flowers to get specific sepal widths. They are not exercising any control over this variable."),
+    answer("Sepal.Width", message="This is an important variable, but in this case the scientists are not choosing flowers to get specific sepal widths. They are not exercising any control over this variable."),
     answer("Sepal.Length", message="This variable is not related to our research question. (We did use it as an example though.)"),
     answer("Species", correct = TRUE),
     answer("Petal.Length", message="This variable is not related to our research question."),
@@ -99,16 +99,36 @@ quiz(
 )
 ```
 
-### Need something on checking levels
-`levels(iris$Species)`
+### Is ANOVA the right approach?
+**An**alysis **o**f **Va**riance, or ANOVA, is a common statistical test used to detect associations between a quantitative *dependent variable* (like `Sepal.Width`) and a categorical *independent variable* (like `Species`). 
+
+* By using a null hypothesis of "The population means of all groups are equal," it attempts to use sample data to find evidence that *at least one* group has a different population mean than the rest.
+* The "groups" of an ANOVA are recorded using the *independent variable*, where the number of categories for this variable should be three or more. These categories are sometimes called *levels*.
+
+#### Exercise!
+How many *levels* does the `Species` variable have? The `levels()` command applied to a factor variable like `Species` will list the different category options, which in our case are the different species in our sample data.  In the code block below, use the `levels()` function on the `Species` column of the `iris` data set.
+```{r levels, exercise = TRUE, exercise.lines = 3}
+# Place your code here
+```
+```{r levels-hint-1}
+levels(...)
+```
+```{r levels-hint-2}
+levels(iris$...)
+```
+```{r levels-solution}
+levels(iris$Species)
+# Or count the levels with length()
+length(levels(iris$Species))
+```
 
 ```{r why-anova-question}
 question("Which of the following statements explain(s) why we need to use ANOVA rather than a different statistical test? <br> *Select all that apply.*",
     answer("We are interested in comparing the means for a quantitative measurement across several groups.", correct=TRUE),
-    answer("The independent variable is a grouping variable with at least *three* groups (sometimes called \"levels\").", correct = TRUE),
-    answer("The variance of the groups are all about the same.", message = "While the details of ANOVA involve variance, it does test for differences in means."),
-    answer("Our box-plots do not seem to overlap much, and the group means are seemingly different.", message = "We still use ANOVA to do our statistical testing regardless of what the summarized data reports."),
-    answer("We should not use an ANOVA for this analysis.", message = "ANOVA is in fact the right analysis approach for this research question and data."),
+    answer("The independent variable is a categorical variable with at least *three* groups (sometimes called \"levels\").", correct = TRUE),
+    answer("Each group has a variance we need to analyze.", message = "While the details of ANOVA involve variance, it actually tests for potentially different means."),
+    answer("The sample data will show us that the means are different, so we do not need ANOVA.", message = "We would still use ANOVA to do our statistical testing regardless of what the summarized data reports."),
+    answer("Both our dependent and independent variables are quantitative.", message = "Our independent variable is not quantititative; we do not need a number to record the species of iris."),
     allow_retry = T,
     random_answer_order = T,
     post_message = random_praise()
@@ -116,14 +136,12 @@ question("Which of the following statements explain(s) why we need to use ANOVA 
 ```
 
 ## Summarizing the data
-We have identified `Species` as our independent variable, with a `Sepal.Width` dependent variable.  So how can we look for an association between these variables?
+We have identified `Species` as our independent variable, with a `Sepal.Width` dependent variable. Moreover, we have decided to use ANOVA to analyze our research question. This will help us determine whether the data provides evidence to suggest that there are differences in the *population means* for `Sepal.Width` when we look at our three `Species`.
 
-A common approach is to use a statistical test to determine whether the data provides evidence to suggest that there are differences in the *population mean*  `Sepal.Width`s when we look at our three `Species`.  This, loosely speaking, is what we hope to accomplish when we run an ANOVA. 
-
-However, before doing inferential statistics, we can create descriptive statistics associated with our sample data that help inform our research question. Particularly, we can 
+Before doing inferential statistics, however, we should compute descriptive statistics associated with our sample data. Particularly, we  
 
 1. Look at the *sample means* for sepal width across the three species, and
-2. Use a visual, like a box-plot, to further explore whether there appear to be differences in sepal widths between the three species. 
+2. Use a visual, like a box-plot, to further explore whether there appear to be differences in sepal widths between the three species *in our sample*. 
 
 #### Exercise!
 The code below generates this explorative information, *but for petal length*. ***Make the appropriate changes to the code to work for `Sepal.Width` instead.***
@@ -179,21 +197,50 @@ question_text(
 )
 ```
 
+### Reviewing the assumptions of ANOVA
+As with all statistical tests, trusting the analysis results require that we verify a few testing assumptions.^[Violating testing assumptions can lead to inflated Type I or Type II errors, which has the unfortunate consequence of sending researchers to look for trends where they don't exist, or fail to look for trends where they do exist.] We have already determined that ANOVA is appropriate, so here are the assumptions for that test:
 
-Acknowledging ANOVA: Even though the sample means may be different, this does not necessarily we have enough evidence that the *population means* are different.
+1. Independence of observations
+2. Equal variances for each group (Homoscedasticity)
+3. Normal residuals (error terms within each group)
 
+The first assumption, *independence of observations*, is not something for which we can test. Rather, we use the data collection phase to attempt to satisfy this first assumption. Specifically, we want to make sure that each observation comes from a different experimental unit (like a flower), randomly selected from one of the populations of interest.
 
-## Preparing for ANOVA
+The second and third assumptions are something we can verify with visualizations and even with further statistical tests.  We will spend the next two sections exploring them before interpreting our analysis. First, however, we should do some small preparation. 
 
-Check for "balance"
-```{r}
+### Preparing for ANOVA
+There are two preparation steps to complete before we can check our ANOVA assumptions and interpret our results. We need to check the sample sizes for each group, and we need to fit an initial anova model in `R`.
+
+#### A "Balanced" Design
+A *balanced design* in the context of ANOVA essentially means that the number of observations in each group of our independent variable are all about the same. Having a balanced design makes the test more robust to violations of our second and third ANOVA assumptions (equal variances and normal residuals). It is also a good idea to shoot for at least 30 observations for each group.^[This helps with our third assumption, normality of residuals, for reasons having to do with the central limit theorem.]  
+
+Use the code block below to pass the `Species` column from the `iris` data set into the `table()` command. This will output sample sizes for each group.
+```{r balance, exercise = TRUE, exercise.lines = 2}
+#place your code here.
+```
+```{r balance-hint-1}
+table(...)
+```
+```{r balance-hint-2}
+table(iris$...)
+```
+```{r balance-solution}
 table(iris$Species)
 ```
 
-Assumptions of ANOVA:
+```{r balance-question}
+question_text(
+  "Based on the previous output, do you believe we have a \"balanced design\"? Are the sample sizes a large enough size? <br></br> Submit your answer to see an example written by us! <br></br> (***Note***: all responses are marked 'correct,' so please compare your answer against ours.",
+  answer_fn(function(value) {
+    if (grepl(".*", value)) {
+      correct("Thanks for writing an answer. How does your answer compare with ours?")
+    }
+  }), message="The groups are perfectly balanced, with exactly 50 irises sampled from each species population.  Since all group sizes are above 30, we have a good sample size for each group."
+)
+```
 
-* Normality of residuals (or normality within groups)
-* equal variances/sd within groups
+#### Fitting an initial ANOVA model in `R`
+
 
 Initial fit
 ```{r}
