@@ -208,6 +208,7 @@ The first assumption, *independence of observations*, is not something for which
 
 The second and third assumptions are something we can verify with visualizations and even with further statistical tests.  We will spend the next two sections exploring them before interpreting our analysis. First, however, we should do some small preparation. 
 
+
 ### Preparing for ANOVA
 There are two preparation steps to complete before we can check our ANOVA assumptions and interpret our results. We need to check the sample sizes for each group, and we need to fit an initial anova model in `R`.
 
@@ -273,7 +274,31 @@ iris.aov
 ```
 **Answer Check:** You should see some output, but perhaps not what you were expecting.  If this worked, however, you will find `Residual standard error: 0.3396877`.
 
-## Checking for Equal Variances
+## Checking for Equal Variances {data-progressive=TRUE}
+We have a few methods of checking the equal variances assumption of an ANOVA:
+
+1. Visually, we can look at the spread of the residuals for each group; or
+2. We can compute the standard deviation of our dependent variable (`Sepal.Width` in our case) for each group; or
+3. We can use Levene's test for equal variances.
+
+In this section, we will present the code for each approach.
+
+### Visually inspecting for equal variances
+Using the fitted anova model, `iris.aov`, from the previous section, we can use the `plot()` function in `R` to automatically prepare some diagnostic plots.  For this particular assumption, we only care about the first plot.
+
+Run the code below to generate the appropriate visual.
+```{r visual-equal-var, exercise = TRUE, exercise.lines=3, exercise.setup="aov-setup"}
+plot(iris.aov, which =1)
+```
+#### Interpreting the plot
+Above you can see that data points representing residuals on the $y$-axis stack over specific "Fitted Values" on the $x$-axis.
+
+* The "Fitted Values" are simply the sample means computed for each group. You'll notice one group of dots is about 2.7 (which is the sample mean for `versicolor`), another is above about 2.9 (the sample mean for `virginica`), and the last is above 3.4 (the sample mean for `setosa`). The dots are naturally stacked according to their `Species` (more specifically, the sample mean for each species)
+* The residuals are simply the sepal width for a given flower minus the sample mean sepal width for that flower's species. In other words, our $y$-axis tracks how far a given sepal width is from its sample mean after grouping by species.
+
+Now that we understand the plot better, we can see that regardless of the species, the general spread of the residuals is about the same. In other words, the different groups of "stacked dots" have about the same vertical spread. This suggests that we do satisfy the equal variances assumption.
+
+
 
 Checking residuals versus fitted for groups
 
@@ -311,7 +336,7 @@ plot(iris.aov, which =2)
 ```
 
 ```{r}
-shapiro.test(iris.aov$residuals)
+shapiro.test(iris.aov$residuals)$p.value
 ```
 
 ```{r}
