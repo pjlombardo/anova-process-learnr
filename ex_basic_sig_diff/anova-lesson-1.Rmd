@@ -273,7 +273,7 @@ iris.aov
 ```
 **Answer Check:** You should see some output, but perhaps not what you were expecting.  If this worked, however, you will find `Residual standard error: 0.3396877`.
 
-## Checking assumptions, part 1
+## Checking for Equal Variances
 
 Checking residuals versus fitted for groups
 
@@ -291,8 +291,8 @@ with(iris,
 
 
 ```{r}
-leveneTest(Sepal.Width~Species,
-           center="mean", data = iris)
+broom::tidy(leveneTest(Sepal.Width~Species,
+           center="mean", data = iris))$p.value
 ```
 
 P-value < 0.05, indicating we have do not have evidence the variances are  unequal.  
