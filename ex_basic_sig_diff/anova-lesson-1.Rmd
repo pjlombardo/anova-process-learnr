@@ -10,8 +10,7 @@ runtime: shiny_prerendered
 ```{r setup, include=FALSE}
 library(learnr)
 library(car)
-# library(dplyr)
-library(ggplot2)
+library(tidyverse)
 knitr::opts_chunk$set(echo = FALSE)
 
 plot_resids_anova<-function(formula, data,dec=3){
@@ -284,11 +283,11 @@ We have a few methods of checking the equal variances assumption of an ANOVA:
 In this section, we will present the code for each approach.
 
 ### Visually inspecting for equal variances
-Using the fitted anova model, `iris.aov`, from the previous section, we can use the `plot()` function in `R` to automatically prepare some diagnostic plots.  For this particular assumption, we only care about the first plot.
+Using the fitted anova model, `iris.aov`, from the previous section, we can use the `plot()` function in `R` to automatically prepare some diagnostic plots.  For this particular assumption, we only care about the first plot, so we will add `which=1` to the arguments.
 
 Run the code below to generate the appropriate visual.
 ```{r visual-equal-var, exercise = TRUE, exercise.lines=3, exercise.setup="aov-setup"}
-plot(iris.aov, which =1)
+plot(iris.aov, which=1)
 ```
 #### Interpreting the plot
 Above you can see that data points representing residuals on the $y$-axis stack over specific "Fitted Values" on the $x$-axis.
@@ -298,22 +297,46 @@ Above you can see that data points representing residuals on the $y$-axis stack 
 
 Now that we understand the plot better, we can see that regardless of the species, the general spread of the residuals is about the same. In other words, the different groups of "stacked dots" have about the same vertical spread. This suggests that we do satisfy the equal variances assumption.
 
+### Comparing standard deviations for each group
+Another way to check for equal variances is to compute the standard deviation of `Sepal.Width` for each group, and compare them.  As a heuristic, many suggest using the "three-fold-rule" to gauge whether standard deviations are similar enough.
 
+> The largest standard deviation should not be more than three-times the smallest standard deviation.
 
-Checking residuals versus fitted for groups
+To compute standard deviations by group, we can use the functions `group_by()` and `summarize()`  from the `dplyr` package. Recall that  
 
+* `group_by()` is used to specify our grouping variable; our independent variable in this analysis
+* inside `summarize()` we can use `R` functions like `sd()` to do our summaries.
+
+Use the code-chunk below to build your table comparing standard deviations for our three species.
+```{r equal-var-table, exercise = TRUE, exercise.lines=4}
+iris %>%
+    group_by(...) %>%
+    summarize(stdevs = ...)
+```
+```{r equal-var-table-hint-1}
+iris %>%
+    group_by(Species) %>%
+    summarize(stdevs = ...)
+```
+```{r equal-var-table-hint-2}
+iris %>%
+    group_by(Species) %>%
+    summarize(stdevs = sd(...))
+```
+```{r equal-var-table-solution}
+iris %>%
+    group_by(Species) %>%
+    summarize(stdevs = sd(Sepal.Width))
+```
+
+#### Interpreting the summary table
+
+# Go from here
 ```{r}
-
-plot_resids_anova(Sepal.Width~Species,iris)
 
 ```
 
-```{r}
-with(iris,
-    tapply(Sepal.Width, Species, sd)
-)
-```
-
+### Testing for Equal Variances
 
 ```{r}
 broom::tidy(leveneTest(Sepal.Width~Species,
