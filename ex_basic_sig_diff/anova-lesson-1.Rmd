@@ -212,7 +212,7 @@ The second and third assumptions are something we can verify with visualizations
 There are two preparation steps to complete before we can check our ANOVA assumptions and interpret our results. We need to check the sample sizes for each group, and we need to fit an initial anova model in `R`.
 
 #### A "Balanced" Design
-A *balanced design* in the context of ANOVA essentially means that the number of observations in each group of our independent variable are all about the same. Having a balanced design makes the test more robust to violations of our second and third ANOVA assumptions (equal variances and normal residuals). It is also a good idea to shoot for at least 30 observations for each group.^[This helps with our third assumption, normality of residuals, for reasons having to do with the central limit theorem.]  
+A *balanced design* in the context of ANOVA essentially means that the number of observations in each group of our independent variable are all about the same. Having a balanced design makes the test more robust to violations of our second and third ANOVA assumptions (equal variances and normal residuals). It is also a good idea to shoot for at least 30 observations for each group.^[Having at least 30 observations for each group helps with our third assumption, normality of residuals, for reasons having to do with the central limit theorem.]  
 
 Use the code block below to pass the `Species` column from the `iris` data set into the `table()` command. This will output sample sizes for each group.
 ```{r balance, exercise = TRUE, exercise.lines = 2}
@@ -240,48 +240,46 @@ question_text(
 ```
 
 #### Fitting an initial ANOVA model in `R`
+Before we can check our assumptions, we need to fit an initial model.  Based on the resutls of our assumption check, we may decide modify our approach and fit a different model.
 
+In `R`, we use the `aov()` function to "fit" an ANOVA.  In its simplest application, which is fine for us, it uses two arguments:
 
-Initial fit
-```{r}
-iris.aov<-aov(Sepal.Width ~ Species, data = iris)
+* `formula`: which we use to specify the dependent and independent variables (`Lesion.mm ~ Treatment`), and
+* `data`: which we use to identify the data frame with our data (`final_df`).
+
+The syntax is `aov(depend_var ~ indep_var, data = df_name)`.
+
+##### Exercise!
+Fill in the code below to fit an ANOVA and save the output to the name `iris.aov`.  The last line calls the saved output so you can see that it worked.
+```{r aov-setup}
+iris.aov<-aov(Sepal.Width~Species, data =iris)
 ```
 
+```{r aov1, exercise = TRUE, exercise.lines=3, exercise.setup="aov-setup"}
+iris.aov <- aov(...)
+iris.aov
+```
+```{r aov1-hint-1}
+iris.aov <- aov(..., data = iris)
+iris.aov
+```
+```{r aov1-hint-2}
+iris.aov <- aov(Sepal.Width ~ ..., data = iris)
+iris.aov
+```
+```{r aov1-solution}
+iris.aov <- aov(Sepal.Width ~ Species, data = iris)
+iris.aov
+```
+**Answer Check:** You should see some output, but perhaps not what you were expecting.  If this worked, however, you will find `Residual standard error: 0.3396877`.
 
 ## Checking assumptions, part 1
 
 Checking residuals versus fitted for groups
 
 ```{r}
-plot_resids_anova<-function(formula, data,dec=3){
-    IV<-all.vars(formula)[2]
-    DV<-all.vars(formula)[1]
-    sds<-tapply(data[[DV]],data[[IV]],sd)
-    levs<-levels(data[[IV]])
-    aov.model<-aov(formula(paste(DV,IV,sep="~")), data = data)
-    M<-max(aov.model$residuals)
-    m<-min(aov.model$residuals)
-    ggplot(data = data.frame(x=data[[IV]],
-                         y=aov.model$residuals),
-       aes(x=x,
-           y=y,
-           color=x))+
-    geom_hline(yintercept=0)+
-    geom_boxplot(aes(fill=x),alpha=.3, color=NA)+
-    # geom_stripchart()
-    geom_point(position=position_jitter(width=.1), alpha=.6)+theme_bw()+labs(y="residuals",x="fitted values", title=paste("Residual Versus Fitted Plot,",DV,"~",IV),
-                                                                              subtitle="(Boxes represent interquartile ranges)")+ scale_y_continuous(limits=c(m-.1,M+.12))+
-    # print(paste(levs," (stdev = ",round(sds,3),")",sep=""))
-    # +
-        scale_color_discrete(IV,labels=paste(levs,"\n(stdev = ",round(sds,dec),")\n",sep=""))+
-        scale_fill_discrete(guide="none")
-    
-    # annotate("text",x=levs, y=rep(M+.1,length(levs)),
-    #          label=paste("stdev =",round(sds,3)))
-}
 
-plot_resids_anova(weight~feed, chickwts)
-plot_resids_anova(Petal.Width~Species,iris)
+plot_resids_anova(Sepal.Width~Species,iris)
 
 ```
 
