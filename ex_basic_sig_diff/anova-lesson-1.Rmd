@@ -368,7 +368,11 @@ P-value < 0.05, indicating we have do not have evidence the variances are  unequ
 ## Checking for Normal Residuals
 normality
 ```{r}
-hist(iris.aov$residuals)
+# hist(iris.aov$residuals)
+ggplot()+
+    geom_histogram(aes(x = iris.aov$residuals),
+                   fill='dodgerblue',alpha=.6,
+                   color='gray4',bins=10)+theme_bw()+labs(x="Residuals",title="Histogram of ANOVA Residuals")
 ```
 
 ```{r}
@@ -381,10 +385,9 @@ shapiro.test(iris.aov$residuals)$p.value
 ```
 
 ```{r}
-with(iris,
-     tapply(Sepal.Width, Species, hist))
+# with(iris,
+#      tapply(Sepal.Width, Species, hist))
 
-library(ggplot2)
 ggplot(data = iris,
        aes(x = Sepal.Width))+
     geom_histogram(bins =5)+
