@@ -1,6 +1,7 @@
 library(patchwork)
 library(ggplot2)
 library(tidyverse)
+library(car)
 
 plot_resids_anova<-function(formula, data,dec=3,withsd = TRUE){
     IV<-all.vars(formula)[2]
@@ -132,13 +133,14 @@ plot_anova_stuff<-function(formula, data, bins=10,dec=3,dec2=5,withsd=FALSE){
     p3<-plot_hist_anova(formula=formula, data = data, bins=bins)
     
     layout1<-"
-    EEEFF#
-    EEEFF#
-    EEEFF#
-    AAACCC
-    AAACCC
-    AAACCC
-    AAACCC
+    AAAEEE
+    AAAEEE
+    AAAEEE
+    AAAEEE
+    FFFCCC
+    FFFCCC
+    FFFCCC
+    FFFCCC
     DDDDDD
     DDDDDD
     "
@@ -146,6 +148,6 @@ plot_anova_stuff<-function(formula, data, bins=10,dec=3,dec2=5,withsd=FALSE){
     p1+p2+p3+t1+t2+plot_layout(design=layout1)
 }
 
-plot_anova_stuff(Sepal.Width~Species, data = iris, bins = 10,
+plot_anova_stuff(Petal.Width~Species, data = iris, bins = 10,
                  dec2=8)
 
