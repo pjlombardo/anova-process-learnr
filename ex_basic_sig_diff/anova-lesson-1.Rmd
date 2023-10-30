@@ -37,6 +37,16 @@ plot_resids_anova<-function(formula, data,dec=3){
 
 ```
 
+```{css, echo=FALSE}
+details summary { 
+  cursor: pointer;
+  color: rgb(154, 7, 7);
+  font-size: 18px;
+  font-style: italic;
+  font-family: Georgia;
+}
+```
+
 ## Our research question {data-progressive=TRUE}
 Today want to consider the following question:
 
@@ -196,7 +206,7 @@ question_text(
 )
 ```
 
-### Reviewing the assumptions of ANOVA
+## Reviewing the assumptions of ANOVA
 As with all statistical tests, trusting the analysis results require that we verify a few testing assumptions.^[Violating testing assumptions can lead to inflated Type I or Type II errors, which has the unfortunate consequence of sending researchers to look for trends where they don't exist, or fail to look for trends where they do exist.] We have already determined that ANOVA is appropriate, so here are the assumptions for that test:
 
 1. Independence of observations
@@ -239,7 +249,7 @@ question_text(
 )
 ```
 
-#### Fitting an initial ANOVA model in `R`
+### Fitting an initial ANOVA model in `R`
 Before we can check our assumptions, we need to fit an initial model.  Based on the resutls of our assumption check, we may decide modify our approach and fit a different model.
 
 In `R`, we use the `aov()` function to "fit" an ANOVA.  In its simplest application, which is fine for us, it uses two arguments:
@@ -289,13 +299,18 @@ Run the code below to generate the appropriate visual.
 ```{r visual-equal-var, exercise = TRUE, exercise.lines=3, exercise.setup="aov-setup"}
 plot(iris.aov, which=1)
 ```
-#### Interpreting the plot
+<details>
+<summary> $\blacktriangleright$ Interpreting the plot
+</summary>
+
 Above you can see that data points representing residuals on the $y$-axis stack over specific "Fitted Values" on the $x$-axis.
 
 * The "Fitted Values" are simply the sample means computed for each group. You'll notice one group of dots is about 2.7 (which is the sample mean for `versicolor`), another is above about 2.9 (the sample mean for `virginica`), and the last is above 3.4 (the sample mean for `setosa`). The dots are naturally stacked according to their `Species` (more specifically, the sample mean for each species)
 * The residuals are simply the sepal width for a given flower minus the sample mean sepal width for that flower's species. In other words, our $y$-axis tracks how far a given sepal width is from its sample mean after grouping by species.
 
 Now that we understand the plot better, we can see that regardless of the species, the general spread of the residuals is about the same. In other words, the different groups of "stacked dots" have about the same vertical spread. This suggests that we do satisfy the equal variances assumption.
+</details>
+
 
 ### Comparing standard deviations for each group
 Another way to check for equal variances is to compute the standard deviation of `Sepal.Width` for each group, and compare them.  As a heuristic, many suggest using the "three-fold-rule" to gauge whether standard deviations are similar enough.
@@ -329,9 +344,15 @@ iris %>%
     summarize(stdevs = sd(Sepal.Width))
 ```
 
-#### Interpreting the summary table
 
-# Go from here
+<details> 
+<summary> $\blacktriangleright$ Interpretation
+</summary>
+The smallest standard deviation is about 0.314; tripling this is about 0.9.  Since all the other standard deviations are below 0.9, we satisfy the "three-fold-rule".  Therefore, as a heuristic, we can operate under the assumption that the variances for the groups are equal.
+</details>
+
+
+### Go from here
 ```{r}
 
 ```
