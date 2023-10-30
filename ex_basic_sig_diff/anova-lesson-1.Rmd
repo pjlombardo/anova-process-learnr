@@ -353,11 +353,9 @@ The smallest standard deviation is about 0.314; tripling this is about 0.9.  Sin
 
 
 ### Go from here
-```{r}
 
-```
-
-### Testing for Equal Variances
+### Statistical Testing for Equal Variances
+Note that we need the `car` test to run `leveneTest`
 
 ```{r}
 broom::tidy(leveneTest(Sepal.Width~Species,
@@ -367,14 +365,13 @@ broom::tidy(leveneTest(Sepal.Width~Species,
 P-value < 0.05, indicating we have do not have evidence the variances are  unequal.  
 
 
-## Checking assumptions, part 2
+## Checking for Normal Residuals
 normality
 ```{r}
 hist(iris.aov$residuals)
 ```
 
 ```{r}
-library(ggplot2)
 iris.aov<-aov(Sepal.Width~Species, data =iris)
 plot(iris.aov, which =2)
 ```
