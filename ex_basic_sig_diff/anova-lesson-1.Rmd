@@ -361,15 +361,44 @@ For because of the way the null and alternative hypotheses are set up, we are in
 
 > Main Idea: when using Levene's test to assess for equal variance, we want to *fail to provide evidence against the null hypothesis*.  We want our $P$-value to be ***greater than 0.05***!
 
- 
-Running Levene's test in `R` is straightforward, but we do have to load the `car` package first.^[Make sure `library(car)` appears at the head of your R script or document to load the `car` package.]
+Running Levene's test in `R` is straightforward, but we do have to load the `car` package first.^[Make sure `library(car)` appears at the head of your R script or document to load the `car` package.] The `car` package contains the `leveneTest()` function (note the capital "T"), which takes three arguments:
 
-```{r}
-broom::tidy(leveneTest(Sepal.Width~Species,
-           center="mean", data = iris))$p.value
+* `formula`: the same formula input we used for the `aov()` function; `dependent_var ~ independent_var`.
+* `center`: which measure of center to use for the variance computation; we will use `"mean"`. 
+* `data`: this identifies the data set we use.
+
+Running this function will return a table of information, and the $P$-value is listed under the column title `Pr(>F)`.
+
+#### Exercise!
+Complete the code below to run Levene's test on our ANOVA data comparing `Sepal.Width` among `Species`.
+```{r levene, exercise = TRUE, exercise.lines=4}
+leveneTest(formula = ...,
+          center = "...",
+          data = ...)
+```
+```{r levene-hint-1}
+leveneTest(formula = ...,
+          center = "mean",
+          data = iris)
+```
+```{r levene-hint-2}
+leveneTest(formula = Sepal.Width ~ ...,
+          center = "mean",
+          data = iris)
+```
+```{r levene-solution}
+leveneTest(formula = Sepal.Width ~ Species,
+          center = "mean",
+          data = iris)
 ```
 
-P-value < 0.05, indicating we have do not have evidence the variances are  unequal.
+Questions:
+
+What is the $P$-value
+
+What does this mean?
+
+Summary of results.
 
 
 ## Checking for Normal Residuals
