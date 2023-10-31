@@ -1,6 +1,6 @@
 ---
 title: "ANOVA Lesson 1"
-author: (Created by P. Lombardo)
+author: (Created by P. Lombardo with the [learnr package](https://rstudio.github.io/learnr/))
 output: 
     learnr::tutorial:
         theme: "yeti"
@@ -206,7 +206,7 @@ question_text(
 )
 ```
 
-## Reviewing the assumptions of ANOVA
+## Assumptions and initial fit
 As with all statistical tests, trusting the analysis results require that we verify a few testing assumptions.^[Violating testing assumptions can lead to inflated Type I or Type II errors, which has the unfortunate consequence of sending researchers to look for trends where they don't exist, or fail to look for trends where they do exist.] We have already determined that ANOVA is appropriate, so here are the assumptions for that test:
 
 1. Independence of observations
@@ -283,7 +283,7 @@ iris.aov
 ```
 **Answer Check:** You should see some output, but perhaps not what you were expecting.  If this worked, however, you will find `Residual standard error: 0.3396877`.
 
-## Checking for Equal Variances {data-progressive=TRUE}
+## Checking for equal variances {data-progressive=TRUE}
 We have a few methods of checking the equal variances assumption of an ANOVA:
 
 1. Visually, we can look at the spread of the residuals for each group; or
@@ -348,7 +348,7 @@ iris %>%
 <details> 
 <summary> $\blacktriangleright$ Interpretation
 </summary>
-The smallest standard deviation is about 0.314; tripling this is about 0.9.  Since all the other standard deviations are below 0.9, we satisfy the "three-fold-rule".  Therefore, as a heuristic, we can operate under the assumption that the variances for the groups are equal.
+The smallest standard deviation is about 0.314; tripling this is about 0.9.  Since all the other standard deviations are below 0.9, we satisfy the "three-fold-rule".  Therefore, according to this heuristic, we can operate under the assumption that the variances for the groups are equal.
 </details>
 
 ### Statistical Testing for Equal Variances
@@ -363,7 +363,7 @@ For because of the way the null and alternative hypotheses are set up, we are in
 
 Running Levene's test in `R` is straightforward, but we do have to load the `car` package first.^[Make sure `library(car)` appears at the head of your R script or document to load the `car` package.] The `car` package contains the `leveneTest()` function (note the capital "T"), which takes three arguments:
 
-* `formula`: the same formula input we used for the `aov()` function; `dependent_var ~ independent_var`.
+* `y`: We set this to the same formula input we used for the `aov()` function; `dependent_var ~ independent_var`. *This argument must come first!*
 * `center`: which measure of center to use for the variance computation; we will use `"mean"`. 
 * `data`: this identifies the data set we use.
 
@@ -372,43 +372,85 @@ Running this function will return a table of information, and the $P$-value is l
 #### Exercise!
 Complete the code below to run Levene's test on our ANOVA data comparing `Sepal.Width` among `Species`.
 ```{r levene, exercise = TRUE, exercise.lines=4}
-leveneTest(formula = ...,
+leveneTest(...,
           center = "...",
           data = ...)
 ```
 ```{r levene-hint-1}
-leveneTest(formula = ...,
+leveneTest(...,
           center = "mean",
           data = iris)
 ```
 ```{r levene-hint-2}
-leveneTest(formula = Sepal.Width ~ ...,
+leveneTest(Sepal.Width ~ ...,
           center = "mean",
           data = iris)
 ```
 ```{r levene-solution}
-leveneTest(formula = Sepal.Width ~ Species,
+leveneTest(Sepal.Width ~ Species,
           center = "mean",
           data = iris)
 ```
 
-Questions:
+```{r quiz-eq-var}
+quiz(
+    question_numeric(
+        "What is the $P$-value for Levene's Test of Equal Variances?\n*Round your answer to four decimal places.*",
+        answer(0.6, message = "This is not the $P$-value. Remember to look in the Pr(>F) column."),
+        answer(0.6006, message = "This is not the $P$-value. Remember to look in the Pr(>F) column."),
+        answer(0.55, message = "Too few digits"),
+        answer(0.550, message = "Too few digits"),
+        answer(0.54981, message = "Too many digits"),
+        answer(0.549811, message = "Too many digits"),
+        answer(0.5498, correct = TRUE),
+        allow_retry = TRUE,
+        min = 0,
+        max = 1,
+        step=.0001
+    ),
+    question("Based on the $P$-value, what do the results of Levene's suggest about our equal variances assumption?",
+        answer("Since the $P$-value is above 0.05, we do not have evidence that at least one variance is different.  It supports the assumption that we have equal variances.", correct = TRUE),
+        answer("Since the $P$-value is below 0.05, we do not have evidence that at least one variance is different.  It supports the assumption that we have equal variances.", message="Are you sure the $P$-value below 0.05?"),
+        answer("Since the $P$-value is below 0.05, the evidence suggests at least one variance is different.  It *does not* support the assumption that we have equal variances.", message="Are you sure the $P$-value below 0.05?"),
+        answer("Since the $P$-value is above 0.05, the evidence suggests at least one variance is different.  It *does not* support the assumption that we have equal variances.", message="While the $P$-value is above 0.05, this means we failed to provide evidence to reject the null hypothesis. What is the null hypothesis for Levene's test?"),
+        allow_retry = T,
+        random_answer_order = T,
+        incorrect = random_encouragement(),
+        post_message = random_praise()
+  )
+)
+```
 
-What is the $P$-value
+### Summarizing results
+We considered three methods for checking the "equal variances" condition:
 
-What does this mean?
+1. A visual looking at the spread of residuals by group.
+2. Standard deviations by group, verifying with the "three-fold" rule of thumb.
+3. Levene's test.
 
-Summary of results.
+In this example, all three methods pointed toward the conclusion that it is safe to assume our variances are equal.
+
+#### We are ready to check the next assumption!
 
 
-## Checking for Normal Residuals
+
+## Checking for normal residuals
 normality
 ```{r}
 # hist(iris.aov$residuals)
 ggplot()+
-    geom_histogram(aes(x = iris.aov$residuals),
+    geom_histogram(aes(x = iris.aov$residuals,
+                       y=after_stat(density)),
                    fill='dodgerblue',alpha=.6,
-                   color='gray4',bins=10)+theme_bw()+labs(x="Residuals",title="Histogram of ANOVA Residuals")
+                   color='gray4',
+                   bins=10)+
+    theme_bw()+
+    labs(x="Residuals",
+         title="Histogram of ANOVA Residuals")+
+    stat_function(fun=dnorm,geom="line",
+                  args=list(mean=mean(iris.aov$residuals),
+                            sd=sd(iris.aov$residuals)),
+                  colour='red',linewidth=1)
 ```
 
 ```{r}
@@ -427,7 +469,18 @@ shapiro.test(iris.aov$residuals)$p.value
 ggplot(data = iris,
        aes(x = Sepal.Width))+
     geom_histogram(bins =5)+
-    facet_grid(Species~., scales="free")
+    facet_grid(.~Species, scales="free")
+```
+
+```{r}
+ggplot()+
+    geom_qq(aes(sample=iris.aov$residuals),
+            color='blue',alpha=.5)+
+    geom_qq_line(aes(sample=iris.aov$residuals),color='red')+
+        labs(title="QQ-plot for ANOVA residuals",
+             x="Theoretical Quantiles",
+             y="Residuals")+
+        theme_bw() 
 ```
 
 
