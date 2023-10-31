@@ -351,18 +351,25 @@ iris %>%
 The smallest standard deviation is about 0.314; tripling this is about 0.9.  Since all the other standard deviations are below 0.9, we satisfy the "three-fold-rule".  Therefore, as a heuristic, we can operate under the assumption that the variances for the groups are equal.
 </details>
 
-
-### Go from here
-
 ### Statistical Testing for Equal Variances
-Note that we need the `car` test to run `leveneTest`
+There is are several hypothesis tests that involve comparing variances for different groups.  A commonly used test is called [Levene's Test](https://en.wikipedia.org/wiki/Levene%27s_test), but it is important to understand how this test works.
+
+* The *null hypothesis* is that all the variances for the groups are equal.  (This is what we *want*!)
+* The *alternative hypothesis* is that at least one group has a difference variance than the rest.
+
+For because of the way the null and alternative hypotheses are set up, we are in the odd position of hoping that we fail to provide evidence against the null hypothesis. In other words,
+
+> Main Idea: when using Levene's test to assess for equal variance, we want to *fail to provide evidence against the null hypothesis*.  We want our $P$-value to be ***greater than 0.05***!
+
+ 
+Running Levene's test in `R` is straightforward, but we do have to load the `car` package first.^[Make sure `library(car)` appears at the head of your R script or document to load the `car` package.]
 
 ```{r}
 broom::tidy(leveneTest(Sepal.Width~Species,
            center="mean", data = iris))$p.value
 ```
 
-P-value < 0.05, indicating we have do not have evidence the variances are  unequal.  
+P-value < 0.05, indicating we have do not have evidence the variances are  unequal.
 
 
 ## Checking for Normal Residuals
