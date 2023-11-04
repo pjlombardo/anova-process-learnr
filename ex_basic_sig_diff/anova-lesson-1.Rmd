@@ -434,10 +434,45 @@ In this example, all three methods pointed toward the conclusion that it is safe
 
 
 
-## Checking for normal residuals
-normality
-```{r}
-# hist(iris.aov$residuals)
+## Checking for normal residuals {data-progressive=TRUE}
+Our third assumption when conducting an ANOVA is that *the residuals* of the ANOVA have normal distribution. 
+
+***
+
+<details>
+<summary>$\blacktriangleright$ What's a residual again?</summary>
+In an ANOVA, each data point has its own *residual*, which is simply the measurement value minus the sample mean for the group to which that observation belongs. As an example, recall that the sample mean `Sepal.Width` for setosa irises was 3.428 inches, and our first observation was a setosa iris with a sepal width of 3.5 inches.  The residual for this flower would be $3.5 - 3.428 = 0.072$.
+</details>
+
+***
+
+To check this assumption, we will highlight three approaches:
+
+1. Visually check for a normal shape using a histogram;
+2. Visually check for normality using a Quantile-Quantile plot (QQ plot); and
+3. Using a statistical test, like the Shapiro-Wilks test, to asses normality.
+
+Let's review the code and interpretation of each of these below.
+
+### Histograms of residuals
+Our first visual method simply has us plot a histogram of the residuals for the ANOVA. Since we have already "fit" an initial ANOVA and saved the results in `iris.aov`, we can access the residuals easily with `iris.aov$residuals`.  The easiest way to plot a histogram of the residuals is to pass that command into the `hist()` command in `R`.
+
+#### Exercise!
+```{r norm-hist, exercise = TRUE, exercise.lines=3, exercise.setup="aov-setup"}
+hist(...)
+```
+```{r norm-hist-hint-1}
+hist(iris.aov$...)
+```
+```{r norm-hist-solution}
+hist(iris.aov$residuals)
+```
+(*Note:* We can also create histograms with `ggplot()`, but the code is longer so we often use `hist()` to keep the assumptions checks short and sweet.)
+
+<details>
+<summary> $\blacktriangleright$ Interpretation! </summary>
+The histogram seems to follow a roughly normal distribution, a "bell-shape" with one peak and symmetrical over its middle. For those interested, one could also overlay the density curve of a normal distribution with a mean of zero and the standard deviation set to the standard deviation of the observed residuals:
+```{r fig.align='center',fig.height=3,fig.width=5}
 ggplot()+
     geom_histogram(aes(x = iris.aov$residuals,
                        y=after_stat(density)),
@@ -452,37 +487,123 @@ ggplot()+
                             sd=sd(iris.aov$residuals)),
                   colour='red',linewidth=1)
 ```
+As we can see above, the bars of the histogram follow the normal density curve reasonably well.  We can assume the residuals *are* normally distributed, as desired.
+</details>
 
-```{r}
-iris.aov<-aov(Sepal.Width~Species, data =iris)
-plot(iris.aov, which =2)
+### Using a Quantile-Quantile Plot (QQ plot)
+Another common visualization is called a Quantile-Quantile plot, which compares a quantile based on your data ($y$-axis) against theoretical quantiles based on a chosen distribution ($x$-axis). (This [StatQuest video](https://www.youtube.com/watch?v=okjYjClSjOg) has a great explanation).  When testing for normality, we use the normal distribution for the theoretical quantiles.
+
+Loosely speaking, when we create a Normal QQ-plot, we want the "dots" to fall on along a straight line, which provides evidence that our data has the same distribution as the normal distribution.
+
+We can quickly generate a QQ-plot for our residuals using the `plot()` function applied to `iris.aov`. However, this time we want the second plot, so we need the additional argument `which=2`.  Try it below!
+
+#### Exercise!
+```{r visual-qq, exercise = TRUE, exercise.lines=3, exercise.setup="aov-setup"}
+# Write your code here
+```
+```{r visual-qq-hint-1}
+plot()
+```
+```{r visual-qq-hint-2}
+plot(iris.aov, which = ...)
+```
+```{r visual-qq-solution}
+plot(iris.aov, which = 2)
 ```
 
-```{r}
+<!-- 
+Note: 
+To make this plot by hand we can need to create the theoretical quantiles using qnorm.  For a sample with n observations, R does this as follows:
+
+qnorm( 1/(2*n) + 0:(n-1)/n )
+
+We plot these against the z-score of our residuals
+
+scale(iris.aov$residuals)
+
+-->
+
+<details>
+<summary> $\blacktriangleright$ Interpretation! </summary>
+In the plot above the circles, which plot the normal quantiles against our data quantiles, all appear to follow the straight line well.  This again supports the assumption that the residuals *are* normally distributed, as desired.
+
+*Note:* We can create QQ-plots with `ggplot2` as well, using `geom_qq()` and `geom_qq_line()`. Notice we set our residuals to the `sample` aesthetic; moreover, we have to use the `scale()` function to get the $z$-scores of our residuals.
+```
+ggplot()+
+    geom_qq(aes(
+    sample = scale(iris.aov$residuals)
+    ))+
+    geom_qq_line(aes(
+    sample = scale(iris.aov$residuals)
+    ))
+```
+</details>
+
+### Hypothesis testing for normality
+A common test for whether a variable has a normal distribution is the [Shapiro-Wilk test](https://en.wikipedia.org/wiki/Shapiro%E2%80%93Wilk_test).  Keep the null and alternative hypotheses in mind:
+
+* The *null hypothesis* is that the data comes from a normal distribution.  (This is what we *want*!)
+* The *alternative hypothesis* is that the data was drawn from a distribution that **is not** the normal distribution.
+
+Once again, because of way the null and alternative hypotheses are set up, we are in the odd position of hoping that we fail to provide evidence against the null hypothesis. In other words,
+
+> Main Idea: when using the Shapiro-Wilk test to assess for normality or the residuals, we want to *fail to provide evidence against the null hypothesis*.  We want our $P$-value to be ***greater than 0.05***!
+
+(*Note*: This aligns with our test for equal variances, where we also hope to see a $P$-value above 0.05.)
+
+Running this test in `R` is straightforward. Simply pass the vector of residuals from `iris.aov` into the command `shapiro.test()`. Try it below, and then answer the follow-up questions
+
+#### Exercises!
+```{r shapiro, exercise = TRUE, exercise.lines=4,exercise.setup="aov-setup"}
+shapiro.test(...)
+```
+```{r shapiro-hint-1}
+shapiro.test(iris.aov$...)
+```
+```{r shapiro-solution}
+shapiro.test(iris.aov$residuals)
+# We can extract the p.value directly with
 shapiro.test(iris.aov$residuals)$p.value
 ```
 
-```{r}
-# with(iris,
-#      tapply(Sepal.Width, Species, hist))
-
-ggplot(data = iris,
-       aes(x = Sepal.Width))+
-    geom_histogram(bins =5)+
-    facet_grid(.~Species, scales="free")
+```{r quiz-normal-res}
+quiz(
+    question_numeric(
+        "What is the $P$-value for the Shapiro-Wilk Test?\n*Round your answer to three decimal places.*",
+        answer(0.989, message = "This is not the $P$-value. Look for the entry following \"p-value: ....\""),
+        answer(0.3, message = "Too few digits"),
+        answer(0.32, message = "Too few digits"),
+        answer(0.32304, message = "Too many digits"),
+        answer(0.323, correct = TRUE),
+        allow_retry = TRUE,
+        min = 0,
+        max = 1,
+        step=.0001
+    ),
+    question("Based on the $P$-value, what do the results of the Shapiro-Wilk test suggest about our normality assumption for the residuals?",
+        answer("Since the $P$-value is above 0.05, we do not have evidence that the residuals come from a non-normal distribution. This provides support for the assumption that the residuals have a normal distribution.", correct = TRUE),
+        answer("Since the $P$-value is below 0.05, we do not have evidence that the residuals come from a non-normal distribution.  It supports the assumption that the residuals are normally distributed.", message="Are you sure the $P$-value below 0.05?"),
+        answer("Since the $P$-value is below 0.05, the evidence suggests that the residuals come from a non-normal distribution.  It *does not* support the assumption that the residuals are normally distributed.", message="Are you sure the $P$-value below 0.05?"),
+        answer("Since the $P$-value is above 0.05, the evidence suggests that the residuals come from a non-normal distribution.  It *does not* support the assumption that the residuals are normally distributed.", message="While the $P$-value is above 0.05, this means we failed to provide evidence to reject the null hypothesis. What is the null hypothesis for Levene's test?"),
+        allow_retry = T,
+        random_answer_order = T,
+        incorrect = random_encouragement(),
+        post_message = random_praise()
+  )
+)
 ```
 
-```{r}
-ggplot()+
-    geom_qq(aes(sample=iris.aov$residuals),
-            color='blue',alpha=.5)+
-    geom_qq_line(aes(sample=iris.aov$residuals),color='red')+
-        labs(title="QQ-plot for ANOVA residuals",
-             x="Theoretical Quantiles",
-             y="Residuals")+
-        theme_bw() 
-```
 
+### Summarizing results
+We considered three methods for checking the "normal residuals" condition:
+
+1. A visual check looking at a histogram of the residuals;
+2. A different visual check looking at a Normal QQ plot;
+3. The Shapiro-Wilk test.
+
+In this example, all three methods pointed implied that it is safe to assume our residuals *do* have a normal distribution, as we wanted.
+
+#### We are ready to check the next assumption!
 
 ## Planning for final analysis
 No seeming issues with homoscedasticity or normality of residuals; the design is perfectly balanced, and we have good sample sizes.  A standard ANOVA should do the trick!
