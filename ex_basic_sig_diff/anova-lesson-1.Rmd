@@ -603,12 +603,22 @@ We considered three methods for checking the "normal residuals" condition:
 
 In this example, all three methods pointed implied that it is safe to assume our residuals *do* have a normal distribution, as we wanted.
 
-#### We are ready to check the next assumption!
+#### We are ready to review our assumptions and make a final analysis plan!
 
-## Planning for final analysis
-No seeming issues with homoscedasticity or normality of residuals; the design is perfectly balanced, and we have good sample sizes.  A standard ANOVA should do the trick!
+## Finalizing our analysis
 
-## Final analysis and interpretation
+### Are modifications necessary?
+We have three main assumptions for an ANOVA:
+
+1. Independence of observations
+2. Equal variances for each group (Homoscedasticity)
+3. Normal residuals (error terms within each group)
+
+Through careful experimental design and data collection, we are ready to trust that our observations are independent.  Moreover, we used visuals, sample statistics, and hypothesis tests to verify that we also have equal variances, and normal residuals.
+
+Since we did not encounter any issues with our testing assumptions, we can proceed with a standard ANOVA (without any modifications) and interpret the results.^[In other applications, we will explore modifications to the traditional ANOVA that will help us when we violate some of the ANOVA assumptions.]
+
+### Getting the $P$-value from `iris.aov`.
 ```{r}
 summary(iris.aov)
 ```
