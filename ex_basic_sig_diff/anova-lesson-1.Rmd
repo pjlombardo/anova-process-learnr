@@ -11,6 +11,9 @@ runtime: shiny_prerendered
 library(learnr)
 library(car)
 library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(sortable)
 knitr::opts_chunk$set(echo = FALSE)
 
 plot_resids_anova<-function(formula, data,dec=3){
@@ -601,13 +604,13 @@ We considered three methods for checking the "normal residuals" condition:
 2. A different visual check looking at a Normal QQ plot;
 3. The Shapiro-Wilk test.
 
-In this example, all three methods pointed implied that it is safe to assume our residuals *do* have a normal distribution, as we wanted.
+In this example, all three methods implied that it is safe to assume our residuals *do* have a normal distribution, as we wanted.
 
 #### We are ready to review our assumptions and make a final analysis plan!
 
 ## Finalizing our analysis
 
-### Are modifications necessary?
+#### Are modifications necessary?
 We have three main assumptions for an ANOVA:
 
 1. Independence of observations
@@ -619,14 +622,206 @@ Through careful experimental design and data collection, we are ready to trust t
 Since we did not encounter any issues with our testing assumptions, we can proceed with a standard ANOVA (without any modifications) and interpret the results.^[In other applications, we will explore modifications to the traditional ANOVA that will help us when we violate some of the ANOVA assumptions.]
 
 ### Getting the $P$-value from `iris.aov`.
-```{r}
+Yes... we're all thinking the same thing.  ***Where's my $P$-value!?***
+
+The default report from the `aov()` function does not provide a $P$-value, but we can get it easily.  Since we saved the ANOVA output under the name `iris.aov`, we can use other functions to get more information.
+
+One such function is `summary()`, which will create a standard ANOVA table, and also report our $P$-value for the hypothesis test. The $P$-value is located under the column heading `Pr(>F)` (just as with the `leveneTest()` output).
+
+#### Exercies: extract the ANOVA table and the $P$-value
+Put our saved ANOVA, `lesion.aov`, inside the `summary()` function to see a new output!
+```{r get-p, exercise = TRUE, exercise.lines=3, exercise.setup="aov-setup"}
+summary(...)
+```
+```{r get-p-solution}
 summary(iris.aov)
 ```
-Evidence suggests at least one population mean is different from the others
 
-```{r}
+```{r p-val-question}
+question(
+    "Based on the output of the previous coding exercise, which of the options below corresponds to the $P$-value of our ANOVA?",
+    answer("5.672",message="A $P$-value should always fall between 0 and 1, so this cannot be the $P$-value. Remember to look under the \"Pr(>F)\" column."),
+    answer("0.115",message="This is something called the *mean squared error within treatments*, but it is not the $P$-value. Look under the \"Pr(>F)\" column for the $P$-value."),
+    answer("49.16",message="A $P$-value should fall between 0 and 1. This is our $F$-statistic, and it relates to how we compute a $P$-value, but it is not the $P$-value. Remember to look under the \"Pr(>F)\" column."),
+    answer("0.001",message="This comes from the significance codes, which are used to interpret the asterisks following the $P$-value. Look under the \"Pr(>F)\" column for the $P$-value."),
+    answer("<2e-16",correct=TRUE, message="Great! A specific number for the $P$-value is not provided; however, this symbol tells us that the $P$-value is smaller than $2 \\times 10^{-16}$ (very small...)."),
+    allow_retry = T,
+    random_answer_order = T,
+    incorrect = random_encouragement(),
+    post_message = random_praise()
+)
+```
+
+Our ANOVA involving potential differences in mean sepal width between our iris species, has a **verysmall** $P$-value. But, what does that ***mean***? 
+
+In general, researchers follow these "guidelines":^[Notice that the language we use here is strongly suggestive, but not certain. We never *prove* anything with a hypothesis test; rather, we provide evidence or fail to provide evidence. ]
+
+* If the $P$-value is below 0.05, we have evidence to reject the null hypothesis.
+* If the $P$-value is above 0.05, there is not enough evidence to reject the null hypothesis.
+
+Use this guide to sort through the proper conclusion below.
+```{r reject-question}
+question("Keep in mind that the null hypothesis for an ANOVA is that *all* the group means are equal to each other at the population level. Given that our $P$-value is less that $2\\times 10^{-16}$, what should we conclude?",
+    answer("The test fails because our $P$-value does not equal 0.05.", message="This is not one of our potential conclusions; revisit the two options above."),
+    answer("We have evidence to reject the null hypothesis and conclude that *all* the group means are different.", message="We do have evidence to reject the null hypothesis. However, while the null hypothesis assumes all group means are equal, rejecting this claim does not require that each group mean is different from the rest. We can reject this claim in less extreme situations.<br></br> Assuming it is not the case that *all* group means are equal, what is the minimal number of group means that needs to be different from the rest?"),
+    answer("We have failed to reject the null hypothesis; we proved the group means are all equal.", message = "Our $P$-value is less than $2\\times 10^{-16}$, so it is certainly smaller than 0.05. What that that mean for our null hypothesis?"),
+    answer("We have evidence to reject the null hypothesis. So our evidence suggests that *at least one* of the group means is different.", correct = TRUE),
+    answer("We do not have enough evidence to reject the null hypothesis. Our evidence does not support any difference in the group means.", message = "Our $P$-value is less than $2\\times 10^{-16}$, so it imust be smaller than 0.05. What that that mean for our null hypothesis?"),
+    allow_retry = T,
+    random_answer_order = T,
+    post_message = random_praise()
+  )
+```
+
+### Great work!
+So far we have 
+
+1. Identified our independent and dependent variables (`Speices` and `Sepal.Width`, respectively);
+2. Checked our three ANOVA assumptions using various approaches, and established our assumptions are met;
+3. "Fit" our ANOVA and saved the output (`iris.aov`), and found the $P$-value using `summary(lesion.aov)`;
+4. Interpreted the results of the test: *The samples provide sufficient evidence to suggest that **at least one** (possibly more) group mean is different from the rest, at the population level.*
+
+In the context of our data, this means that our experiment suggests the following:
+
+> At the population level (so extending beyond just the data we collected), *at least one* species of iris will have a different mean sepal width than the others.
+
+Great! But... 
+
+* Which species is different? 
+* Is only one group different or more?  
+* For a group that does have a different mean, is it larger or smaller than the other group means? By how much?
+
+To answer these questions, we need a "post hoc" (after the event) test called Tukey's Honest Significant Difference Test.
+
+One more section; let's keep learning!
+
+***
+***
+
+**Optional note on "*population level*"**<br>
+It's a little odd to use the language of "population level mean" for experiments like this.  One way to interpret this is in terms of *reproducibility*, which scientists seem to like. Recall our conclusion:
+
+*At the **population level** (so extending beyond just the data we collected), at least one species of iris will have a different mean sepal width than the others.*
+
+We are simply implying that this particular experiment, combined with the ANOVA results, suggests that if we were to run the experiment several more times (*reproduce it*), we would expect to see similar results of at least one group mean being different.
+
+By implying that reproducing the experiment would not change the results, we are suggesting the difference we are detecting is a feature of the *populations* from which we draw, and not particular samples. Since each reproduction of the experiment would draw from the same populations, we would not expect the results to vary in a significant way most of the time.
+
+## Tukey's Honest Significant Difference Test
+The ANOVA results ($P$-value < $2\times 10^{-16}$ < 0.05) give us reason to believe that *at least one* population group mean is different from the others.  Running Tukey's Test will help us answer more interesting questions. ***But**, we should only run a post-hoc test (like Tukey's) if we first verify that our ANOVA is significiant (i.e., $P$-value $< 0.05$).
+
+<details>
+<summary> $\blacktriangleright$ A Quick Tukey HSD Review... </summary>
+Tukey's Honest Significant Difference test (Tukey's HSD) essentially runs all possible pair-wise tests for differences in means, but makes adjustments to avoid problematic increases in Type I Error rates. For our data, Tukey's HSD would run three tests:^[When your grouping variable has more than three groups, the number of combinations increase quite quickly. For example, 10 treatment groups leads to 45 pair-wise comparisons.]
+
+* Difference in means comparing `setosa` and `versicolor`
+* Difference in means comparing `setosa` and `virginica`
+* Difference in means comparing `versicolor` and `virginica`
+
+For each of these tests, Tukey's HSD will return "adjusted" information; both an adjusted $P$-value, and an adjusted confidence interval for the difference in means for the pair being considered.
+
+* We can use the $P$-values to determine if there is a difference between a given pair; as usual, we look for adjusted $P$-values below 0.05.
+* We can use the confidence intervals to determine which group mean is larger.  
+    * For example, if we compare `setosa` minus `versicolor`, and the confidence interval for the difference in means is entirely positive, it suggests the group mean sepal width for `setosa` irises will be bigger than the group mean for `versicolor`.
+
+After establishing an ANOVA has a significant result, running the Tukey HSD test tells us very useful information.
+
+</details>
+    
+### Running Tukey's HSD
+Luckily, it is very easy to run Tukey's test in `R`. Recall that we have `iris.aov` storing our ANOVA output for the ANOVA based on the `Sepal.Width` variable.  Simply put this inside the `TukeyHSD()` function.  
+```{r tukey, exercise = TRUE, exercise.lines=3, exercise.setup="aov-setup"}
+#place your code here
+```
+```{r tukey-hint-1}
+TukeyHSD(...)
+```
+```{r tukey-solution}
 TukeyHSD(iris.aov)
 ```
 
-All three appear different from each other
+### Interpreting TukeyHSD Output
+The most important information appears in the table output.  Each row corresponds to a pairing of treatment groups, and the difference of means test was computed ***using that order***.  For example, the row labeled `versicolor-setosa` gives information on the difference of means test where we look at the mean sepal width for `versicolor` minus the mean sepal width for `setosa`.
 
+The last column consists of our adjusted $P$-values. The `virginica-versicolor` comparison, for example, has an adjusted $P$-value of 0.0087802.
+
+<!-- <center><img src="images/tukey1.png" alt="Tukey Output, P-values" width="75%"></center> -->
+
+Any row with an adjusted $P$-value *below* 0.05 indicates a test that provides evidence for a difference in means *between these two groups*. 
+
+```{r pairwise-p-question}
+question("Between which two groups did Tukey's HSD detect a significant difference in means? Use a significance level (i.e. $P$-value threshold) of 0.05. <br> *Select all that apply*.",
+    answer("versicolor and setosa", correct=TRUE),
+    answer("versicolor and virginica", correct = TRUE),
+    answer("virginica and setosa", correct=TRUE),
+    answer("virginicolor and versetosa", message = "This isn't a comparison that Tukey's test does."),
+    allow_retry = T,
+    random_answer_order = T,
+    incorrect = random_encouragement(),
+    post_message = random_praise()
+  )
+```
+
+#### Confidence intervals
+The middle two columns of Tukey's output report confidence intervals for the difference in means *taken in the order of the row label.*
+
+```{r}
+as.data.frame(TukeyHSD(aov(Sepal.Width~Species, data = iris))$Species) %>%
+    kable() %>%
+    kable_styling() %>%
+    column_spec(3, color = "black",
+                     background = "#bdc3fc"#,
+                     #popover = paste("am:", mtcars$am[1:8])
+            )%>%
+    column_spec(4, color = "black",
+                     background = "#bdc3fc"#,
+                     #popover = paste("am:", mtcars$am[1:8])
+            )
+```
+
+
+For example, Tukey's test estimates the difference between the population mean speal width for `versicolor` *minus* the population mean sepal width for `setosa` falls between $-0.819$ inches and $-0.497$ inches.
+
+* This interval does not contain zero and it is *entirely* negative. This implies that the mean sepal width for setosa irises is *larger* than the mean sepal width for versicolor irises *at the population level.*  
+
+<details>
+<summary> $\blacktriangleright$ Mathematical justification </summary>
+If the entire confidence interval for this difference in means is negative, it implies:
+\begin{eqnarray*}
+\mu_{\text{versicolor}} - \mu_{\text{setosa}} &< 0\\[1.5mm]
+\mu_{\text{versicolor}} &< \mu_{\text{setosa}}
+\end{eqnarray*}
+</details>
+
+```{r pairwise-ci-question}
+irises_ans <- c(
+    "versicolor",
+    "virginica",
+    "setosa"
+    )
+
+# Initialize the question
+question_rank(
+  "According to the confidence intervals from Tukey's Test, sort the iris sepecies by increasing mean sepal width at the population level.<br></br> (*The species with the smallest mean sepal width should be at the **top**, with the means increasing as you move down.*)",
+  answer(irises_ans, correct = TRUE),
+  answer(rev(irises_ans), correct = FALSE, message = "Make sure it is *increasing* order of mean sepal widths."),
+  allow_retry = TRUE,
+  incorrect = random_encouragement(),
+    post_message = random_praise()
+)
+```
+
+## Our Final Conclusion
+Recall the research question with which we began this tutorial:
+
+> Does the ***species*** of an iris plant have an association with the mean width of its ***sepals***?
+
+Based on our work in the previous sections, we have the following to report:
+
+* The data indicates that we have met all ANOVA assumptions required to trust the results of this analysis.
+* We have evidence that at least one species of iris has a different mean sepal width than the other species. Hence, ***we do have evidence of an association between sepal width and species for these three iris types.*** More specifically,
+    * A post-hoc Tukey HSD finds sufficient evidence of a difference in sepal width group means among all the species (setosa, versicolor, and virginica).
+    * Based on confidence interval estimates for the differences in means, we have evidence that that versicolor has the smallest mean sepal width, followed by virginica, and then setosa.
+
+### Excellent Job!
+We have learned so much in the past few sections. If you feel ready to test your knowledge, or learn about "tweaks" to ANOVA when some assumptions are violated, we encourage you to explore some further lessons!
