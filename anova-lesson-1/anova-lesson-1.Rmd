@@ -253,14 +253,14 @@ question_text(
 ```
 
 ### Fitting an initial ANOVA model in `R`
-Before we can check our assumptions, we need to fit an initial model.  Based on the resutls of our assumption check, we may decide modify our approach and fit a different model.
+Before we can check our assumptions, we need to fit an initial model.  Based on the results of our assumption check, we may decide modify our approach and fit a different model.
 
 In `R`, we use the `aov()` function to "fit" an ANOVA.  In its simplest application, which is fine for us, it uses two arguments:
 
-* `formula`: which we use to specify the dependent and independent variables (`Lesion.mm ~ Treatment`), and
-* `data`: which we use to identify the data frame with our data (`final_df`).
+* `formula`: which we use to specify the dependent and independent variables (`response ~ explanatory`), and
+* `data`: which we use to identify the data frame with our data (`df_name`).
 
-The syntax is `aov(depend_var ~ indep_var, data = df_name)`.
+The syntax is `aov(response ~ explanatory, data = df_name)`.
 
 ##### Exercise!
 Fill in the code below to fit an ANOVA and save the output to the name `iris.aov`.  The last line calls the saved output so you can see that it worked.
@@ -366,7 +366,7 @@ For because of the way the null and alternative hypotheses are set up, we are in
 
 Running Levene's test in `R` is straightforward, but we do have to load the `car` package first.^[Make sure `library(car)` appears at the head of your R script or document to load the `car` package.] The `car` package contains the `leveneTest()` function (note the capital "T"), which takes three arguments:
 
-* `y`: We set this to the same formula input we used for the `aov()` function; `dependent_var ~ independent_var`. *This argument must come first!*
+* `y`: We set this to the same formula input we used for the `aov()` function; `response` ~ `explanatory`. *This argument must come first!*
 * `center`: which measure of center to use for the variance computation; we will use `"mean"`. 
 * `data`: this identifies the data set we use.
 
