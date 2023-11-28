@@ -1,5 +1,5 @@
 ---
-title: "ANOVA Lesson 1"
+title: "ANOVA Overview Lesson"
 author: (Created by P. Lombardo with the [learnr package](https://rstudio.github.io/learnr/))
 output: 
     learnr::tutorial:
