@@ -58,7 +58,7 @@ Today want to consider the following question:
 <center><figure><img src="images/iris.png" width=70%></img>
 <figcaption>Fig.1 - Labeled Irises by Species <a href="https://www.datacamp.com/tutorial/machine-learning-in-r">(source)</a></figcaption></figure></center>
 
-### Explore the data!
+### Explore the data
 
 #### Exercise!
 Run the code below to explore the data frame.  Remember you can use the small, black triangle in the upper right to view more variables (columns), and you can hit the "Next" button to view more observations (rows).
@@ -69,13 +69,13 @@ iris
 ***
 
 #### Reviewing some important definitions
-In statistics, it is critical to distinguish between the following types of variables:
+In statistics, it is critical to distinguish between the following types of variables:^[The explanatory variable is sometimes called the *independent variable*.  The response variable is sometimes called the *dependent variable*.]
 
-* ***Independent variable:***  this is typically a variable that researchers have some control over, and they let it vary to test for some sort of response in the *dependent variable.*
+* ***Explanatory variable:***  this is typically a variable that researchers have some control over, and they let it vary to test for some sort of difference in the response variable. (We hope to find the *explanatory variable* helps "explain" variation in the response variable.)
 
-* ***Dependent variable:***  this is typically a variable that researchers use to measure the response to differences in an *independent variable*. The researchers cannot (and should not) control what the dependent variable is doing!
+* ***Response variable:***  this is typically a variable that researchers use to measure the response to differences in an explanatory variable. The researchers cannot (and should not) control what the response variable is doing! (We hope to find that the *response variable* "responds" to changes in the explanatory variable.)
 
-Identifying our independent and dependent variables is a critical step in determining how to proceed with appropriate analyses and visualizations.  With that in mind, let's revisit our research question:
+Identifying our explanatory and response variables is a critical step in determining how to proceed with appropriate analyses and visualizations.  Let's revisit our research question:
 
 > Does the ***species*** of an iris plant have an association with the mean width of its ***sepals***?
 
@@ -83,9 +83,9 @@ With this in mind, please answer the questions below!
 
 ```{r variable-question}
 quiz(
-    question("Based on the definition above, which variable in the data frame is the *independent variable*? ",
+    question("Based on the definition above, which variable in the data frame is the *explanatory variable*? ",
     answer("Sepal.Width", message="This is an important variable, but in this case the scientists are not choosing flowers to get specific sepal widths. They are not exercising any control over this variable."),
-    answer("Sepal.Length", message="This variable is not related to our research question. (We did use it as an example though.)"),
+    answer("Sepal.Length", message="This variable is not related to our research question."),
     answer("Species", correct = TRUE),
     answer("Petal.Length", message="This variable is not related to our research question."),
     answer("Petal.Width",message="This variable is not related to our research question."),
@@ -96,9 +96,9 @@ quiz(
     post_message = random_praise()
   ),
 
-    question("Based on the definitions above, which variable in the data frame is the *dependent variable*?",
+    question("Based on the definitions above, which variable in the data frame is the *response variable*?",
         answer("Sepal.Width", correct=TRUE),
-        answer("Sepal.Length", message="This variable is not related to our research question. (We did use it as an example though.)"),
+        answer("Sepal.Length", message="This variable is not related to our research question."),
         answer("Species", message="We do not typically think of the species of a flower as *responding* to the variation in some other variable."),
         answer("Petal.Length", message="This variable is not related to our research question."),
         answer("Petal.Width",message="This variable is not related to our research question."),
@@ -112,10 +112,10 @@ quiz(
 ```
 
 ### Is ANOVA the right approach?
-**An**alysis **o**f **Va**riance, or ANOVA, is a common statistical test used to detect associations between a quantitative *dependent variable* (like `Sepal.Width`) and a categorical *independent variable* (like `Species`). 
+**An**alysis **o**f **Va**riance, or ANOVA, is a common statistical test used to detect associations between a quantitative *response variable* (like `Sepal.Width`) and a categorical *explanatory variable* (like `Species`). 
 
 * By using a null hypothesis of "The population means of all groups are equal," it attempts to use sample data to find evidence that *at least one* group has a different population mean than the rest.
-* The "groups" of an ANOVA are recorded using the *independent variable*, where the number of categories for this variable should be three or more. These categories are sometimes called *levels*.
+* The "groups" of an ANOVA are recorded using the *explanatory variable*, where the number of categories for this variable should be three or more. These categories are sometimes called *levels*.
 
 #### Exercise!
 How many *levels* does the `Species` variable have? The `levels()` command applied to a factor variable like `Species` will list the different category options, which in our case are the different species in our sample data.  In the code block below, use the `levels()` function on the `Species` column of the `iris` data set.
@@ -137,18 +137,19 @@ length(levels(iris$Species))
 ```{r why-anova-question}
 question("Which of the following statements explain(s) why we need to use ANOVA rather than a different statistical test? <br> *Select all that apply.*",
     answer("We are interested in comparing the means for a quantitative measurement across several groups.", correct=TRUE),
-    answer("The independent variable is a categorical variable with at least *three* groups (sometimes called \"levels\").", correct = TRUE),
+    answer("The explanatory variable is a categorical variable with at least *three* groups (sometimes called \"levels\").", correct = TRUE),
     answer("Each group has a variance we need to analyze.", message = "While the details of ANOVA involve variance, it actually tests for potentially different means."),
     answer("The sample data will show us that the means are different, so we do not need ANOVA.", message = "We would still use ANOVA to do our statistical testing regardless of what the summarized data reports."),
-    answer("Both our dependent and independent variables are quantitative.", message = "Our independent variable is not quantititative; we do not need a number to record the species of iris."),
+    answer("Both our explanatory and response variables are quantitative.", message = "Our explanatory variable is not quantititative; we do not need a number to record the species of iris."),
     allow_retry = T,
     random_answer_order = T,
     post_message = random_praise()
   )
 ```
 
+
 ## Summarizing the data
-We have identified `Species` as our independent variable, with a `Sepal.Width` dependent variable. Moreover, we have decided to use ANOVA to analyze our research question. This will help us determine whether the data provides evidence to suggest that there are differences in the *population means* for `Sepal.Width` when we look at our three `Species`.
+We have identified `Species` as our explanatory variable, with a `Sepal.Width` response variable. Moreover, we have decided to use ANOVA to analyze our research question. This will help us determine whether the data provides evidence to suggest that there are differences in the *population means* for `Sepal.Width` when we look at our three `Species`.
 
 Before doing inferential statistics, however, we should compute descriptive statistics associated with our sample data. Particularly, we  
 
@@ -185,9 +186,9 @@ boxplot(Sepal.Width~Species, data = iris)
 ```{r smallest-mean-question}
 question(
     "Based on the previous exercise, which species of iris has the smallest sample mean sepal width?",
-    answer("setosa", message="The mean sepal length for setosa should be about 3.5 inches, which is not the smallest.  Are you sure you selected the correct dependent variable, `Sepal.Length`?"),
+    answer("setosa", message="The mean sepal length for setosa should be about 3.5 inches, which is not the smallest.  Are you sure you selected the correct response variable, `Sepal.Length`?"),
     answer("versicolor", correct=TRUE),
-    answer("virginica", message="The mean sepal length for viginica should be about 3 inches, which is not the smallest.  Are you sure you selected the correct dependent variable, `Sepal.Length`?"),
+    answer("virginica", message="The mean sepal length for viginica should be about 3 inches, which is not the smallest.  Are you sure you selected the correct response variable, `Sepal.Length`?"),
     answer("siberian",message="While this is a species of iris, it is not in our data set so it should not be appearing in your sample statistics."),
     allow_retry = T,
     random_answer_order = T,
@@ -225,7 +226,7 @@ The second and third assumptions are something we can verify with visualizations
 There are two preparation steps to complete before we can check our ANOVA assumptions and interpret our results. We need to check the sample sizes for each group, and we need to fit an initial anova model in `R`.
 
 #### A "Balanced" Design
-A *balanced design* in the context of ANOVA essentially means that the number of observations in each group of our independent variable are all about the same. Having a balanced design makes the test more robust to violations of our second and third ANOVA assumptions (equal variances and normal residuals). It is also a good idea to shoot for at least 30 observations for each group.^[Having at least 30 observations for each group helps with our third assumption, normality of residuals, for reasons having to do with the central limit theorem.]  
+A *balanced design* in the context of ANOVA essentially means that the number of observations in each group of our explanatory variable are all about the same. Having a balanced design makes the test more robust to violations of our second and third ANOVA assumptions (equal variances and normal residuals). It is also a good idea to shoot for at least 30 observations for each group.^[Having at least 30 observations for each group helps with our third assumption, normality of residuals, for reasons having to do with the central limit theorem.]  
 
 Use the code block below to pass the `Species` column from the `iris` data set into the `table()` command. This will output sample sizes for each group.
 ```{r balance, exercise = TRUE, exercise.lines = 2}
@@ -257,7 +258,7 @@ Before we can check our assumptions, we need to fit an initial model.  Based on 
 
 In `R`, we use the `aov()` function to "fit" an ANOVA.  In its simplest application, which is fine for us, it uses two arguments:
 
-* `formula`: which we use to specify the dependent and independent variables (`response ~ explanatory`), and
+* `formula`: which we use to specify the response and explanatory variables (`response ~ explanatory`), and
 * `data`: which we use to identify the data frame with our data (`df_name`).
 
 The syntax is `aov(response ~ explanatory, data = df_name)`.
@@ -290,7 +291,7 @@ iris.aov
 We have a few methods of checking the equal variances assumption of an ANOVA:
 
 1. Visually, we can look at the spread of the residuals for each group; or
-2. We can compute the standard deviation of our dependent variable (`Sepal.Width` in our case) for each group; or
+2. We can compute the standard deviation of our response variable (`Sepal.Width` in our case) for each group; or
 3. We can use Levene's test for equal variances.
 
 In this section, we will present the code for each approach.
@@ -308,8 +309,8 @@ plot(iris.aov, which=1)
 
 Above you can see that data points representing residuals on the $y$-axis stack over specific "Fitted Values" on the $x$-axis.
 
-* The "Fitted Values" are simply the sample means computed for each group. You'll notice one group of dots is about 2.7 (which is the sample mean for `versicolor`), another is above about 2.9 (the sample mean for `virginica`), and the last is above 3.4 (the sample mean for `setosa`). The dots are naturally stacked according to their `Species` (more specifically, the sample mean for each species)
-* The residuals are simply the sepal width for a given flower minus the sample mean sepal width for that flower's species. In other words, our $y$-axis tracks how far a given sepal width is from its sample mean after grouping by species.
+* The "Fitted Values" are simply the sample means computed for each group. You'll notice one group of dots is above 2.7 (which is the sample mean for `versicolor`), another is above about 2.9 (the sample mean for `virginica`), and the last is above 3.4 (the sample mean for `setosa`). The dots are naturally stacked according to their `Species` (more specifically, the sample mean for each species)
+* The residuals are simply the sepal width for a given flower minus the sample mean sepal width ***for that flower's species.*** In other words, our $y$-axis tracks how far a given sepal width is from its sample mean ***after grouping by species.***
 
 Now that we understand the plot better, we can see that regardless of the species, the general spread of the residuals is about the same. In other words, the different groups of "stacked dots" have about the same vertical spread. This suggests that we do satisfy the equal variances assumption.
 </details>
@@ -322,7 +323,7 @@ Another way to check for equal variances is to compute the standard deviation of
 
 To compute standard deviations by group, we can use the functions `group_by()` and `summarize()`  from the `dplyr` package. Recall that  
 
-* `group_by()` is used to specify our grouping variable; our independent variable in this analysis
+* `group_by()` is used to specify our grouping variable; our explanatory variable in this analysis
 * inside `summarize()` we can use `R` functions like `sd()` to do our summaries.
 
 Use the code-chunk below to build your table comparing standard deviations for our three species.
@@ -360,7 +361,7 @@ There is are several hypothesis tests that involve comparing variances for diffe
 * The *null hypothesis* is that all the variances for the groups are equal.  (This is what we *want*!)
 * The *alternative hypothesis* is that at least one group has a difference variance than the rest.
 
-For because of the way the null and alternative hypotheses are set up, we are in the odd position of hoping that we fail to provide evidence against the null hypothesis. In other words,
+Because of the way the null and alternative hypotheses are set up, we are in the odd position of hoping that we fail to provide evidence against the null hypothesis.
 
 > Main Idea: when using Levene's test to assess for equal variance, we want to *fail to provide evidence against the null hypothesis*.  We want our $P$-value to be ***greater than 0.05***!
 
@@ -474,7 +475,7 @@ hist(iris.aov$residuals)
 
 <details>
 <summary> $\blacktriangleright$ Interpretation! </summary>
-The histogram seems to follow a roughly normal distribution, a "bell-shape" with one peak and symmetrical over its middle. For those interested, one could also overlay the density curve of a normal distribution with a mean of zero and the standard deviation set to the standard deviation of the observed residuals:
+The histogram seems to follow a roughly normal distribution, a "bell-shape" with one peak, and the plot is symmetrical over its middle. For those interested, one could also overlay the density curve of a normal distribution with a mean of zero and the standard deviation set to the standard deviation of the observed residuals:
 ```{r fig.align='center',fig.height=3,fig.width=5}
 ggplot()+
     geom_histogram(aes(x = iris.aov$residuals,
@@ -548,13 +549,13 @@ A common test for whether a variable has a normal distribution is the [Shapiro-W
 * The *null hypothesis* is that the data comes from a normal distribution.  (This is what we *want*!)
 * The *alternative hypothesis* is that the data was drawn from a distribution that **is not** the normal distribution.
 
-Once again, because of way the null and alternative hypotheses are set up, we are in the odd position of hoping that we fail to provide evidence against the null hypothesis. In other words,
+Once again, because of way the null and alternative hypotheses are set up, we are in the odd position of hoping that we fail to provide evidence against the null hypothesis.
 
 > Main Idea: when using the Shapiro-Wilk test to assess for normality or the residuals, we want to *fail to provide evidence against the null hypothesis*.  We want our $P$-value to be ***greater than 0.05***!
 
 (*Note*: This aligns with our test for equal variances, where we also hope to see a $P$-value above 0.05.)
 
-Running this test in `R` is straightforward. Simply pass the vector of residuals from `iris.aov` into the command `shapiro.test()`. Try it below, and then answer the follow-up questions
+Running this test in `R` is straightforward. Simply pass the vector of residuals from the anova fit (`iris.aov$residuals`) into the command `shapiro.test()`. Try it below, and then answer the follow-up questions
 
 #### Exercises!
 ```{r shapiro, exercise = TRUE, exercise.lines=4,exercise.setup="aov-setup"}
@@ -676,7 +677,7 @@ question("Keep in mind that the null hypothesis for an ANOVA is that *all* the g
 ### Great work!
 So far we have 
 
-1. Identified our independent and dependent variables (`Speices` and `Sepal.Width`, respectively);
+1. Identified our explanatory and response variables (`Species` and `Sepal.Width`, respectively);
 2. Checked our three ANOVA assumptions using various approaches, and established our assumptions are met;
 3. "Fit" our ANOVA and saved the output (`iris.aov`), and found the $P$-value using `summary(lesion.aov)`;
 4. Interpreted the results of the test: *The samples provide sufficient evidence to suggest that **at least one** (possibly more) group mean is different from the rest, at the population level.*
@@ -685,7 +686,7 @@ In the context of our data, this means that our experiment suggests the followin
 
 > At the population level (so extending beyond just the data we collected), *at least one* species of iris will have a different mean sepal width than the others.
 
-Great! But... 
+Awesome! But... 
 
 * Which species is different? 
 * Is only one group different or more?  
@@ -696,9 +697,9 @@ To answer these questions, we need a "post hoc" (after the event) test called Tu
 One more section; let's keep learning!
 
 ***
-***
 
-**Optional note on "*population level*"**<br>
+<details> <summary>$\blacktriangleright$ Optional note on "*population level*"</summary>
+<br>
 It's a little odd to use the language of "population level mean" for experiments like this.  One way to interpret this is in terms of *reproducibility*, which scientists seem to like. Recall our conclusion:
 
 *At the **population level** (so extending beyond just the data we collected), at least one species of iris will have a different mean sepal width than the others.*
@@ -706,9 +707,12 @@ It's a little odd to use the language of "population level mean" for experiments
 We are simply implying that this particular experiment, combined with the ANOVA results, suggests that if we were to run the experiment several more times (*reproduce it*), we would expect to see similar results of at least one group mean being different.
 
 By implying that reproducing the experiment would not change the results, we are suggesting the difference we are detecting is a feature of the *populations* from which we draw, and not particular samples. Since each reproduction of the experiment would draw from the same populations, we would not expect the results to vary in a significant way most of the time.
+</details>
 
 ## Tukey's Honest Significant Difference Test
-The ANOVA results ($P$-value < $2\times 10^{-16}$ < 0.05) give us reason to believe that *at least one* population group mean is different from the others.  Running Tukey's Test will help us answer more interesting questions. ***But**, we should only run a post-hoc test (like Tukey's) if we first verify that our ANOVA is significiant (i.e., $P$-value $< 0.05$).
+The ANOVA results ($P$-value < $2\times 10^{-16}$ < 0.05) give us reason to believe that *at least one* population group mean is different from the others.  Running Tukey's Test will help us answer more interesting questions. 
+
+***But**, we should only run a post-hoc test (like Tukey's) if we first verify that our ANOVA is significiant (i.e., $P$-value $< 0.05$)*.
 
 <details>
 <summary> $\blacktriangleright$ A Quick Tukey HSD Review... </summary>
@@ -750,7 +754,7 @@ The last column consists of our adjusted $P$-values. The `virginica-versicolor` 
 Any row with an adjusted $P$-value *below* 0.05 indicates a test that provides evidence for a difference in means *between these two groups*. 
 
 ```{r pairwise-p-question}
-question("Between which two groups did Tukey's HSD detect a significant difference in means? Use a significance level (i.e. $P$-value threshold) of 0.05. <br> *Select all that apply*.",
+question("Between which pairs of groups did Tukey's HSD detect a significant difference in means? Use a significance level (i.e. $P$-value threshold) of 0.05. <br> *Select all that apply*.",
     answer("versicolor and setosa", correct=TRUE),
     answer("versicolor and virginica", correct = TRUE),
     answer("virginica and setosa", correct=TRUE),
@@ -780,7 +784,7 @@ as.data.frame(TukeyHSD(aov(Sepal.Width~Species, data = iris))$Species) %>%
 ```
 
 
-For example, Tukey's test estimates the difference between the population mean speal width for `versicolor` *minus* the population mean sepal width for `setosa` falls between $-0.819$ inches and $-0.497$ inches.
+For example, Tukey's test estimates the difference between the population mean sepal width for `versicolor` *minus* the population mean sepal width for `setosa` falls between $-0.819$ inches and $-0.497$ inches.
 
 * This interval does not contain zero and it is *entirely* negative. This implies that the mean sepal width for setosa irises is *larger* than the mean sepal width for versicolor irises *at the population level.*  
 
@@ -802,7 +806,7 @@ irises_ans <- c(
 
 # Initialize the question
 question_rank(
-  "According to the confidence intervals from Tukey's Test, sort the iris sepecies by increasing mean sepal width at the population level.<br></br> (*The species with the smallest mean sepal width should be at the **top**, with the means increasing as you move down.*)",
+  "According to the confidence intervals from Tukey's Test, sort the iris species by increasing mean sepal width at the population level.<br></br> (*The species with the smallest mean sepal width should be at the **top**, with the means increasing as you move down.*)",
   answer(irises_ans, correct = TRUE),
   answer(rev(irises_ans), correct = FALSE, message = "Make sure it is *increasing* order of mean sepal widths."),
   allow_retry = TRUE,
